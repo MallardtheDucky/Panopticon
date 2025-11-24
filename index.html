@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISB Terminal: Project Panopticon</title>
+    <title>ISB // CENTRAL // KRASK</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & ReactDOM -->
@@ -11,934 +11,716 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Fonts -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&family=Inter:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;300;400;700&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap');
         
+        :root {
+            --imperial-red: #b91c1c;
+            --imperial-red-dim: #7f1d1d;
+            --imperial-dark: #050505;
+            --imperial-panel: #09090b;
+            --text-main: #e4e4e7;
+            --text-dim: #71717a;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #000;
-        }
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        
-        /* Custom Keyframe Animations */
-        @keyframes progress {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-        .animate-progress {
-            animation: progress 2s ease-in-out infinite;
-        }
-        
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-        .scan-line {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: rgba(220, 38, 38, 0.5);
-            animation: scan 3s linear infinite;
+            color: var(--text-main);
+            overflow: hidden;
         }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-tech { font-family: 'Share Tech Mono', monospace; }
+        .font-display { font-family: 'Orbitron', sans-serif; }
+
+        /* Background Grid */
+        .grid-bg {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(39, 39, 42, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(39, 39, 42, 0.1) 1px, transparent 1px);
         }
-        ::-webkit-scrollbar-track {
-            background: #09090b; 
+
+        /* Animations */
+        @keyframes cylinder-drop {
+            0% { transform: translateY(-200%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
-        ::-webkit-scrollbar-thumb {
-            background: #27272a; 
-            border-radius: 3px;
+        .animate-cylinder { animation: cylinder-drop 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+
+        @keyframes lock-turn {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(90deg); }
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #ef4444; 
+        .animate-lock { animation: lock-turn 0.5s ease-in-out forwards 1s; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .animate-blink { animation: blink 2s infinite; }
+
+        @keyframes slide-in {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in { animation: slide-in 0.4s ease-out forwards; }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #09090b; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 0px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--imperial-red); }
+
+        /* Tech Borders */
+        .tech-border {
+            position: relative;
+        }
+        .tech-border::before, .tech-border::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            transition: all 0.3s ease;
+        }
+        .tech-border::before { top: -1px; left: -1px; border-top: 1px solid #52525b; border-left: 1px solid #52525b; }
+        .tech-border::after { bottom: -1px; right: -1px; border-bottom: 1px solid #52525b; border-right: 1px solid #52525b; }
+        
+        .tech-border:hover::before { border-color: var(--imperial-red); width: 100%; height: 100%; }
+        .tech-border:hover::after { border-color: var(--imperial-red); width: 100%; height: 100%; }
+
+        /* Glitch Effect for Login */
+        .glitch-text:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--imperial-red);
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
         }
     </style>
 </head>
-<body class="bg-black text-zinc-300 overflow-hidden">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- ICONS (Self-contained SVGs) ---
-        const Icons = {
-            Shield: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-            Globe: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-            Users: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-            Activity: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
-            Lock: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-            Database: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>,
-            Terminal: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>,
-            AlertTriangle: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
-            Eye: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
-            X: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-            Cpu: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>,
-            Radio: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg>,
-            Fingerprint: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 6"/><path d="M5 15.1A2 2 0 0 0 6.5 16c1.1 0 2-.9 2-2V4"/><path d="M14 4v12a2 2 0 0 1-3.8 1.1"/><path d="M19.9 14.3a2 2 0 0 0 2.1-1.9 2 2 0 0 0-2.3-1.8 10.1 10.1 0 0 0-3.7.6"/><path d="M17.8 19.4a2 2 0 0 0 2.2-2.1 2 2 0 0 0-2.6-1.5c-1.7.4-3.4.4-5.2 0"/><path d="M7 21a2 2 0 0 1-2.4-2.4 3 3 0 0 1 .4-2.8 2 2 0 0 1 .7-1.1"/></svg>,
-            Key: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>,
-            UserCheck: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>,
-            ScanLine: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="12" y2="12"/></svg>
+        // --- SVG ICONS ---
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const icons = {
+                Shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
+                Lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+                Eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+                FileText: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></>,
+                Users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+                Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
+                Globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+                Terminal: <><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>,
+                LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+                AlertTriangle: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+                Cpu: <><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></>,
+                Target: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
+                Briefcase: <><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></>
+            };
+
+            return (
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width={size} 
+                    height={size} 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={className}
+                >
+                    {icons[name] || icons.Terminal}
+                </svg>
+            );
         };
 
-        // --- DATA CONSTANTS ---
+        // --- DATA ---
 
-        const PROJECT_DATA = {
-            name: "Comprehensive Social Equilibrium Initiative",
-            codename: "PANOPTICON",
-            clearance: "IMPERIAL EYES ONLY / CAT-10",
-            location: "ISB Central Administrative Tower, Coruscant (Floor 225)",
-            director: "Director Valen Krask",
-            project_lead: "Director (Grade III) Thane Marus",
-            test_bed: "Hok (Mid Rim, Oversector Four)",
-            status: "PHASE 1: FOUNDATION",
-            budget: "10 Billion Credits (Source: COMPNOR Discretionary / Coalition for Improvements)",
-            summary: "A systematic transition from personality-based authority to institutional inevitability. The project seeks to integrate total environmental awareness with predictive intervention to render dissent psychologically impossible."
-        };
-
-        const HOK_DETAILS = {
-            planet: "Hok",
-            region: "Mid Rim",
-            sector: "Oversector Four",
-            jurisdiction: "Grand Moff Garrik Kessler",
-            population: "18.2 Million",
-            economy: "Industrial / Mineral Extraction (Doonium, Tibanna Spin)",
-            threat_level: "MODERATE - RISING",
-            intel_summary: "Hok has been selected due to its diverse demographics and history of labor unrest, specifically in the mining sectors. It is the perfect petri dish. Success here validates the doctrine; failure provides data.",
-            markers: [
-                { label: "Mining Sector 7-G", status: "CRITICAL", note: "Labor agitation leaders identified. Shift change anomalies." },
-                { label: "Transport Guilds", status: "WARNING", note: "Irregular cargo manifests. Possible smuggling of restricted tech." },
-                { label: "Academic Sector", status: "WATCHLIST", note: "Rising sympathy for 'Reformist' politics among faculty." },
-                { label: "Local Law Enforcement", status: "COMPLIANT", note: "Infiltrated. 40% of officers on ISB payroll." }
-            ]
-        };
-
-        const PERSONNEL = [
-            {
-                id: "ISB-DIR-III-MARUS",
-                name: "Thane Marus",
-                rank: "Director (Grade III)",
-                role: "Project Lead (Hok Implementation)",
-                loyalty: "94%",
-                assessment: "Pragmatic. Intelligent. Capable of necessary cruelty if framed as operational logic. Family attachments (Wife/2 Children) represent a leverage point. Hesitant about 'unintended consequences' but ultimately obedient.",
-                status: "ACTIVE - DEPLOYED",
-                image: "IMG_TM"
-            },
-            {
-                id: "GM-KESSLER",
-                name: "Garrik Kessler",
-                rank: "Grand Moff",
-                role: "Oversector Four Governor",
-                loyalty: "CONDITIONAL (REFORMIST FACTION)",
-                assessment: "Political adversary. Advocates 'Trust-Based Governance' (inefficient). blocked ISB expansion last quarter. Unaware of Panopticon's full scope. Believes Marus is conducting a routine security audit.",
-                status: "UNDER SURVEILLANCE",
-                image: "IMG_GK"
-            },
-            {
-                id: "DEP-KOVEL",
-                name: "Kovel",
-                rank: "Deputy Director",
-                role: "Ops Planning",
-                loyalty: "99%",
-                assessment: "Standard bureaucratic functionary. Took over Marus's previous portfolios. Useful for routine administration, lacks imagination for Panopticon.",
-                status: "ACTIVE - CORUSCANT",
-                image: "IMG_KV"
-            }
+        const FEED_DATA = [
+            { id: "HOK-771", type: "BIO", msg: "Subject 99201 pulse elevated during anthem. Flagged.", risk: 82 },
+            { id: "COR-442", type: "FIN", msg: "Irregular credit transfer detected: 400cr to unidentified shell.", risk: 45 },
+            { id: "HOK-119", type: "VOC", msg: "Keyword detected in mess hall: 'Union'. Audio logged.", risk: 91 },
+            { id: "OUT-882", type: "LOC", msg: "Unauthorized movement in Sector 4 restricted zone.", risk: 65 },
+            { id: "SYS-001", type: "NET", msg: "Panopticon Node 4 online. Data stream synchronized.", risk: 0 },
+            { id: "HOK-553", type: "SOC", msg: "Subject 8812 reduced social contact. Isolation protocol effective.", risk: 12 }
         ];
 
-        const LOGS = [
-            {
-                id: "L-001",
-                date: "5 ABY - 0547 Hours",
-                subject: "The Ivory Tower",
-                content: "The city transitions from night to day. Millions begin their routines, unaware they are observed. This awareness provides satisfaction. Not pleasure. Satisfaction. The systems function. Order persists. My office remains bare. Decoration implies leisure. We have no time for leisure."
-            },
-            {
-                id: "L-004",
-                date: "5 ABY - 1930 Hours",
-                subject: "Marus Assessment",
-                content: "Deputy Director Marus has accepted the assignment. He is not certain, which is good. Zealots make mistakes; pragmatists make progress. He understands the fundamental truth: Privacy is a luxury afforded to stable societies. We are not a stable society. We are a building with compromised foundations."
-            },
-            {
-                id: "L-012",
-                date: "5 ABY - 2100 Hours",
-                subject: "The Physician's Duty",
-                content: "I do not hate the rebels. I pity them. They are children smashing the foundations of the house that shelters them. When it collapses, they will cry for someone to save them. And we will be there. We always are. Order is mercy. Chaos is cruelty. Everything else is sentiment."
-            },
-            {
-                id: "L-015",
-                date: "5 ABY - 2215 Hours",
-                subject: "The False Positive Strategy",
-                content: "Marus asked about false positives. I told him they are a feature, not a bug. If only the guilty are punished, the innocent feel safe to deviate. If the innocent occasionally suffer bureaucratic 'errors', it creates generalized caution. Everyone monitors themselves. A self-policing population is the ultimate goal."
-            }
-        ];
-
-        const CITIZEN_FEED = [
-            { id: "HK-992-A", risk: 12, status: "COMPLIANT", action: "None", analysis: "Purchased standard rations. Commute normal." },
-            { id: "HK-441-X", risk: 45, status: "WATCHLIST", action: "Deep Scan", analysis: "Heart rate elevated during anthem. Micro-expressions suggest resentment." },
-            { id: "HK-102-B", risk: 88, status: "INTERVENTION", action: "Credit Freeze", analysis: "Detected unauthorized gathering pattern. Purchase of encrypted comms unit. Initiating 'bureaucratic error' protocol to restrict travel." },
-            { id: "HK-773-C", risk: 0.5, status: "EXEMPLARY", action: "Reward", analysis: "Reported neighbor for noise violation. Allocating priority housing status." },
-            { id: "HK-229-D", risk: 62, status: "WARNING", action: "Social Pressure", analysis: "Frequent association with flagged labor organizers. Initiating 'Isolation Protocol' - degrading social credit score." },
+        const PROJECT_PHASES = [
+            { id: "I", title: "AWARENESS", status: "ACTIVE", progress: 100, desc: "Total information gathering. Integration of financial, medical, and communication streams into unified profiles." },
+            { id: "II", title: "PREDICTION", status: "ACTIVE", progress: 35, desc: "Algorithmic identification of deviation. Pre-crime intervention protocols enabled. 'We treat the illness before symptoms appear.'" },
+            { id: "III", title: "CONDITIONING", status: "LOCKED", progress: 0, desc: "Systematic environmental modification. Reward/punishment integration at societal scale. Generalized caution." }
         ];
 
         // --- COMPONENTS ---
 
-        const GlitchText = ({ text }) => {
-            return <span className="animate-pulse">{text}</span>;
-        };
-
-        const LoginScreen = ({ onLogin }) => {
-            const [step, setStep] = useState('idle'); // idle, scanning, auth, success
-            const [code, setCode] = useState('');
-            const [error, setError] = useState(false);
-
-            const handleScan = () => {
-                setStep('scanning');
-                setTimeout(() => {
-                setStep('auth');
-                }, 2000);
-            };
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                setStep('verifying');
-                setTimeout(() => {
-                setStep('success');
-                setTimeout(onLogin, 1500);
-                }, 1000);
-            };
-
-            return (
-                <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden font-mono text-zinc-300">
-                {/* Background Grid */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none"></div>
-                <div className="absolute inset-0 bg-radial-gradient from-transparent to-black pointer-events-none"></div>
-
-                <div className="z-10 w-full max-w-md p-8 border border-zinc-800 bg-zinc-950/80 backdrop-blur-md relative">
-                    {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-red-600"></div>
-                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-red-600"></div>
-                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-red-600"></div>
-                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-red-600"></div>
-
-                    <div className="text-center mb-8">
-                        <Icons.Shield size={64} className="mx-auto text-white mb-4" />
-                        <h1 className="text-2xl font-bold tracking-[0.3em] text-white">IMPERIAL SECURITY BUREAU</h1>
-                        <p className="text-red-600 text-xs tracking-widest mt-2">CENTRAL ADMINISTRATIVE TOWER</p>
-                    </div>
-
-                    {step === 'idle' && (
-                        <div className="space-y-6 text-center">
-                        <div className="border border-zinc-700 p-4 bg-zinc-900/50">
-                            <p className="text-xs text-zinc-500 uppercase mb-2">Terminal User</p>
-                            <p className="text-lg text-white tracking-widest">DIRECTOR KRASK, V.</p>
-                        </div>
-                        <button 
-                            onClick={handleScan}
-                            className="w-full bg-red-900/20 hover:bg-red-900/40 border border-red-900 text-red-500 py-4 text-sm tracking-widest transition-all duration-300 flex items-center justify-center gap-3 group"
-                        >
-                            <Icons.Fingerprint className="group-hover:text-red-400" />
-                            INITIATE BIOMETRIC HANDSHAKE
-                        </button>
-                        </div>
-                    )}
-
-                    {step === 'scanning' && (
-                        <div className="text-center space-y-4">
-                            <div className="relative w-32 h-32 mx-auto border-2 border-red-900 rounded-full flex items-center justify-center bg-black">
-                            <Icons.ScanLine size={48} className="text-red-600 animate-bounce" />
-                            <div className="absolute inset-0 border-t-2 border-red-500 rounded-full animate-spin"></div>
-                            </div>
-                            <p className="text-red-500 animate-pulse text-xs tracking-widest">ANALYZING RETINAL PATTERNS...</p>
-                        </div>
-                    )}
-
-                    {step === 'auth' && (
-                        <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-                            <div className="space-y-2">
-                            <label className="text-xs uppercase text-zinc-500 tracking-wider">Insert Code Cylinder / Enter Phrase</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-3 text-zinc-500"><Icons.Key size={16} /></span>
-                                <input 
-                                    type="password" 
-                                    autoFocus
-                                    className="w-full bg-black border border-zinc-700 text-white p-2 pl-10 focus:border-red-600 focus:outline-none font-mono tracking-widest placeholder-zinc-800"
-                                    placeholder="••••••••••••••"
-                                    onChange={(e) => setCode(e.target.value)}
-                                />
-                            </div>
-                            </div>
-                            <button type="submit" className="w-full bg-white text-black py-2 font-bold tracking-widest hover:bg-zinc-200 transition-colors">
-                            AUTHENTICATE
-                            </button>
-                        </form>
-                    )}
-
-                    {step === 'verifying' && (
-                        <div className="text-center text-xs font-mono space-y-2">
-                            <p className="text-zinc-400">VERIFYING ENCRYPTION KEY...</p>
-                            <div className="w-full bg-zinc-800 h-1 overflow-hidden">
-                            <div className="h-full bg-red-600 animate-progress"></div>
-                            </div>
-                        </div>
-                    )}
-
-                    {step === 'success' && (
-                        <div className="text-center space-y-4 animate-in zoom-in duration-300">
-                            <div className="w-16 h-16 bg-green-900/20 border border-green-500 rounded-full mx-auto flex items-center justify-center">
-                            <Icons.UserCheck size={32} className="text-green-500" />
-                            </div>
-                            <p className="text-green-500 tracking-widest text-sm">ACCESS GRANTED</p>
-                            <p className="text-zinc-500 text-xs">WELCOME, DIRECTOR.</p>
-                        </div>
-                    )}
-                </div>
-                
-                <div className="absolute bottom-8 text-center space-y-1 opacity-50">
-                    <p className="text-[10px] text-zinc-600 font-mono">SECURE CONNECTION ESTABLISHED // NODE: CORUSCANT-ALPHA</p>
-                    <p className="text-[10px] text-red-900/60 font-mono">UNAUTHORIZED ACCESS IS TREASON. PUNISHMENT IS DEATH.</p>
-                </div>
-                </div>
-            );
-        };
-
-        const BootSequence = ({ onComplete }) => {
-            const [lines, setLines] = useState([]);
-            const bootText = [
-                "LOADING KERNEL 88.2.1...",
-                "MOUNTING SECURE VOLUMES...",
-                "DECRYPTING PANOPTICON ARCHIVES...",
-                "ESTABLISHING UPLINK TO HOK (OVERSECTOR 4)...",
-                "SYNCING BIOMETRIC DATA...",
-                "SYSTEM READY."
-            ];
+        const Typewriter = ({ text, speed = 20, delay = 0, className = "" }) => {
+            const [display, setDisplay] = useState("");
+            const [started, setStarted] = useState(false);
 
             useEffect(() => {
-                let delay = 0;
-                bootText.forEach((line, index) => {
-                delay += Math.random() * 300 + 100;
-                setTimeout(() => {
-                    setLines(prev => [...prev, line]);
-                    if (index === bootText.length - 1) {
-                    setTimeout(onComplete, 500);
+                const startTimeout = setTimeout(() => setStarted(true), delay);
+                return () => clearTimeout(startTimeout);
+            }, [delay]);
+
+            useEffect(() => {
+                if (!started) return;
+                let i = 0;
+                const timer = setInterval(() => {
+                    if (i < text.length) {
+                        setDisplay((prev) => prev + text.charAt(i));
+                        i++;
+                    } else {
+                        clearInterval(timer);
                     }
-                }, delay);
-                });
-            }, []);
+                }, speed);
+                return () => clearInterval(timer);
+            }, [text, speed, started]);
+
+            return <span className={className}>{display}</span>;
+        };
+
+        const Card = ({ title, children, className = "", alert = false, noPadding = false }) => (
+            <div className={`bg-zinc-950 border ${alert ? 'border-red-900 shadow-[0_0_30px_rgba(185,28,28,0.15)]' : 'border-zinc-800'} tech-border transition-all duration-300 ${className}`}>
+                {/* Header */}
+                <div className={`px-5 py-3 border-b border-zinc-800 flex justify-between items-center ${alert ? 'bg-red-950/20' : 'bg-zinc-900/30'}`}>
+                    <h3 className={`font-tech uppercase tracking-[0.2em] text-xs font-bold ${alert ? 'text-red-500' : 'text-zinc-500'}`}>{title}</h3>
+                    <div className="flex gap-1">
+                        <div className={`w-1 h-1 ${alert ? 'bg-red-500 animate-pulse' : 'bg-zinc-700'}`}></div>
+                        <div className="w-1 h-1 bg-zinc-800"></div>
+                        <div className="w-1 h-1 bg-zinc-800"></div>
+                    </div>
+                </div>
+                {/* Content */}
+                <div className={noPadding ? '' : 'p-6'}>
+                    {children}
+                </div>
+            </div>
+        );
+
+        const ProgressBar = ({ value, color = "bg-red-600", label }) => (
+            <div className="space-y-2">
+                <div className="flex justify-between text-[10px] font-mono uppercase text-zinc-500">
+                    <span>{label}</span>
+                    <span>{value}%</span>
+                </div>
+                <div className="w-full h-1 bg-zinc-900 border border-zinc-800">
+                    <div className={`h-full ${color} transition-all duration-1000`} style={{ width: `${value}%` }}></div>
+                </div>
+            </div>
+        );
+
+        const LineGraph = ({ data, color = "#b91c1c" }) => {
+            // Simple SVG line graph generator
+            const height = 60;
+            const width = 200;
+            const max = Math.max(...data);
+            const points = data.map((d, i) => {
+                const x = (i / (data.length - 1)) * width;
+                const y = height - (d / max) * height;
+                return `${x},${y}`;
+            }).join(" ");
 
             return (
-                <div className="h-screen w-full bg-black text-red-600 font-mono p-10 text-lg flex flex-col justify-end pb-20">
-                {lines.map((l, i) => (
-                    <div key={i} className="mb-2">{`> ${l}`}</div>
-                ))}
-                <div className="animate-pulse">_</div>
-                </div>
+                <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="overflow-visible">
+                    <polyline fill="none" stroke={color} strokeWidth="1.5" points={points} vectorEffect="non-scaling-stroke" />
+                    {/* Area under curve */}
+                    <polyline fill={color} fillOpacity="0.1" points={`0,${height} ${points} ${width},${height}`} stroke="none" />
+                </svg>
             );
         };
 
-        const SidebarItem = ({ icon: Icon, label, active, onClick, alert }) => (
-            <button
-                onClick={onClick}
-                className={`w-full flex items-center gap-4 p-4 border-l-4 transition-all duration-300 font-mono text-sm tracking-wider group
-                ${active 
-                    ? 'border-red-600 bg-zinc-900 text-white shadow-[0_0_15px_rgba(220,38,38,0.2)]' 
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30'}`}
-            >
-                <Icon size={18} className={active ? "text-red-500" : "text-zinc-600 group-hover:text-zinc-400"} />
-                <span className="uppercase">{label}</span>
-                {alert && <span className="ml-auto w-1.5 h-1.5 bg-red-600 rounded-full animate-ping" />}
-            </button>
-        );
-
-        const SectionHeader = ({ title, subtitle }) => (
-            <div className="mb-8 border-b border-zinc-800 pb-4 flex justify-between items-end">
-                <div>
-                <h2 className="text-3xl font-light text-white tracking-[0.2em] uppercase font-mono">{title}</h2>
-                {subtitle && <p className="text-red-500 font-mono text-xs mt-2 tracking-widest uppercase">{subtitle}</p>}
-                </div>
-                <div className="hidden md:block">
-                <div className="flex gap-1 mb-1 justify-end">
-                    <div className="w-8 h-1 bg-red-600"></div>
-                    <div className="w-2 h-1 bg-zinc-600"></div>
-                </div>
-                </div>
-            </div>
-        );
-
-        const Card = ({ title, children, className = "", alertLevel = "normal" }) => (
-            <div className={`bg-zinc-900/40 border ${alertLevel === "critical" ? "border-red-900/50 shadow-[0_0_20px_rgba(220,38,38,0.1)]" : "border-zinc-800"} p-6 relative overflow-hidden backdrop-blur-sm ${className}`}>
-                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-zinc-500"></div>
-                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-zinc-500"></div>
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-zinc-500"></div>
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-zinc-500"></div>
-                
-                {title && (
-                <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-2">
-                    <h3 className={`font-mono text-xs uppercase tracking-widest ${alertLevel === "critical" ? "text-red-500" : "text-zinc-400"}`}>{title}</h3>
-                    <div className="flex gap-1">
-                    <div className={`w-1 h-1 rounded-full ${alertLevel === "critical" ? "bg-red-500 animate-pulse" : "bg-red-900"}`}></div>
-                    <div className="w-1 h-1 bg-zinc-700 rounded-full"></div>
-                    </div>
-                </div>
-                )}
-                {children}
-            </div>
-        );
+        // --- SECTIONS ---
 
         const Dashboard = () => (
-            <div className="space-y-6 animate-in fade-in duration-500">
-                <SectionHeader title="Operational Status" subtitle="Systemwide Overview" />
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card title="Threat Level" className="md:col-span-1" alertLevel="critical">
-                    <div className="flex flex-col items-center justify-center h-full py-2">
-                        <Icons.AlertTriangle size={48} className="text-red-500 mb-2 animate-pulse" />
-                        <span className="text-2xl font-mono text-white tracking-widest">ELEVATED</span>
-                        <span className="text-[10px] text-red-400 uppercase mt-1">Sector 7-G Volatility</span>
-                    </div>
-                </Card>
-
-                <Card title="Global Compliance (Est.)" className="md:col-span-2">
-                    <div className="flex items-end gap-4 mb-2">
-                    <div className="text-5xl font-thin text-white">67.4%</div>
-                    <div className="text-green-500 font-mono text-xs mb-2">▲ 0.3% (Last 24h)</div>
-                    </div>
-                    <div className="text-zinc-500 font-mono text-xs mb-2">Target: 99.9% (Post-Implementation Phase 4)</div>
-                    <div className="w-full bg-zinc-800 h-1 mt-2 overflow-hidden">
-                    <div className="bg-gradient-to-r from-red-900 to-red-600 h-1 w-[67%] relative">
-                        <div className="absolute right-0 top-0 bottom-0 w-1 bg-white animate-pulse"></div>
-                    </div>
-                    </div>
-                </Card>
-                
-                <Card title="Active Protocol" className="md:col-span-1">
-                    <div className="flex flex-col justify-center h-full">
-                    <div className="text-lg text-white font-mono mb-1">PANOPTICON</div>
-                    <div className="text-[10px] text-zinc-500 font-mono uppercase">Current Phase</div>
-                    <div className="text-xs text-red-500 font-mono uppercase border border-red-900/30 bg-red-900/10 p-2 mt-2 text-center">
-                        1. Initiation
-                    </div>
-                    </div>
-                </Card>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card title="Priority Intelligence">
-                    <ul className="space-y-4 font-mono text-xs text-zinc-400">
-                        <li className="flex gap-3 items-start p-2 hover:bg-zinc-800/30 transition-colors border-l-2 border-transparent hover:border-red-600">
-                            <Icons.Radio size={14} className="mt-0.5 text-red-500 shrink-0" />
-                            <span>
-                            <strong className="text-white block mb-1">INTERCEPT [HOK-MINING]:</strong>
-                            "Shift leaders meeting in Sector 4 tunnels. Discussing strike action."
-                            <span className="block text-red-900 mt-1">ACTION: Deploy Audio Drones. Log Participants.</span>
-                            </span>
-                        </li>
-                        <li className="flex gap-3 items-start p-2 hover:bg-zinc-800/30 transition-colors border-l-2 border-transparent hover:border-red-600">
-                            <Icons.Users size={14} className="mt-0.5 text-yellow-500 shrink-0" />
-                            <span>
-                            <strong className="text-white block mb-1">PERSONNEL ALERT:</strong>
-                            Director Marus requesting additional funding for "Behavioral Analytics Nodes".
-                            <span className="block text-zinc-600 mt-1">STATUS: Approved by Director Krask.</span>
-                            </span>
-                        </li>
-                    </ul>
-                </Card>
-                
-                <Card title="Implementation Timeline">
-                    <div className="space-y-4 font-mono text-xs relative pl-4 border-l border-zinc-800">
-                        <div className="relative">
-                        <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-green-500"></div>
-                        <div className="flex justify-between items-center text-white">
-                            <span>MONTH 1-3: FOUNDATION</span>
-                            <span className="text-green-500 bg-green-900/10 px-1">COMPLETE</span>
-                        </div>
-                        <p className="text-zinc-600 mt-1">Infrastructure assessment. Personnel vetting.</p>
-                        </div>
-                        <div className="relative">
-                        <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                        <div className="flex justify-between items-center text-red-400">
-                            <span>MONTH 4-6: INFRASTRUCTURE</span>
-                            <span className="text-red-500 bg-red-900/10 px-1 border border-red-900/30">ACTIVE</span>
-                        </div>
-                        <p className="text-zinc-500 mt-1">Physical deployment of surveillance nodes. Data integration.</p>
-                        </div>
-                        <div className="relative opacity-50">
-                        <div className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-zinc-600"></div>
-                        <div className="flex justify-between items-center text-zinc-400">
-                            <span>MONTH 7-12: INITIAL OPS</span>
-                            <span>PENDING</span>
-                        </div>
-                        </div>
-                    </div>
-                </Card>
-                </div>
-            </div>
-        );
-
-        const TargetProfile = () => (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionHeader title="Target Profile: Hok" subtitle="Oversector Four // Priority Test Bed" />
-
+            <div className="space-y-6 animate-slide-in">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1">
-                    <Card className="h-full flex flex-col items-center justify-center text-center space-y-6 bg-gradient-to-b from-zinc-900/50 to-black">
-                        <div className="w-56 h-56 rounded-full border border-zinc-800 relative flex items-center justify-center bg-black shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-                            <div className="absolute inset-0 border border-zinc-800 rounded-full opacity-20" style={{transform: "scale(1.2)"}}></div>
-                            <div className="absolute inset-0 border border-zinc-800 rounded-full opacity-10" style={{transform: "scale(1.4)"}}></div>
-                            <Icons.Globe size={100} className="text-zinc-700 opacity-80" strokeWidth={0.5} />
-                            {/* Orbiting Elements */}
-                            <div className="absolute inset-0 border-t border-red-600/50 rounded-full animate-spin duration-[8000ms]"></div>
-                            <div className="absolute inset-4 border-b border-zinc-500/30 rounded-full animate-spin duration-[12000ms] direction-reverse"></div>
-                            
-                            {/* Hotspots */}
-                            <div className="absolute top-1/3 left-1/3 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-                        </div>
-                        <div>
-                            <h3 className="text-3xl text-white font-mono uppercase tracking-[0.2em]">{HOK_DETAILS.planet}</h3>
-                            <p className="text-red-600 text-xs font-mono mt-1 tracking-widest">{HOK_DETAILS.region} // {HOK_DETAILS.sector}</p>
-                        </div>
-                        <div className="grid grid-cols-2 w-full gap-2 text-center pt-4 border-t border-zinc-800">
-                            <div>
-                                <div className="text-[10px] text-zinc-500 uppercase">Population</div>
-                                <div className="text-white font-mono">{HOK_DETAILS.population}</div>
+                    
+                    {/* Main Status - Compliance */}
+                    <div className="lg:col-span-2">
+                        <Card title="Global Imperial Compliance Index" className="h-full">
+                            <div className="flex flex-col h-full justify-between">
+                                <div className="flex items-end gap-6 mb-8">
+                                    <div className="text-7xl font-display font-black text-white tracking-tighter leading-none">
+                                        <Typewriter text="89.4%" speed={30} />
+                                    </div>
+                                    <div className="pb-2 space-y-1">
+                                        <div className="text-xs font-mono text-green-500 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                            SYSTEMS NOMINAL
+                                        </div>
+                                        <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Delta: +0.4% (Weekly)</div>
+                                    </div>
+                                </div>
+                                
+                                {/* Graph Container */}
+                                <div className="h-32 w-full border-l border-b border-zinc-800 relative">
+                                    <div className="absolute inset-0 p-2">
+                                        <LineGraph data={[65, 68, 72, 75, 74, 78, 82, 85, 88, 89.4]} />
+                                    </div>
+                                    {/* Grid Lines */}
+                                    <div className="absolute inset-0 grid grid-rows-4 pointer-events-none">
+                                        <div className="border-t border-zinc-900/50 w-full"></div>
+                                        <div className="border-t border-zinc-900/50 w-full"></div>
+                                        <div className="border-t border-zinc-900/50 w-full"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <div className="text-[10px] text-zinc-500 uppercase">Threat</div>
-                                <div className="text-yellow-500 font-mono">{HOK_DETAILS.threat_level}</div>
-                            </div>
-                        </div>
-                    </Card>
+                        </Card>
                     </div>
 
-                    <div className="lg:col-span-2 space-y-6">
-                    <Card title="Strategic Analysis">
-                        <div className="prose prose-invert prose-sm max-w-none font-mono">
-                            <p className="text-zinc-400 leading-relaxed border-l-2 border-zinc-700 pl-4">
-                                {HOK_DETAILS.intel_summary}
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                                <div className="bg-zinc-950 p-4 border border-zinc-800">
-                                <h4 className="text-white text-xs uppercase mb-2 flex items-center gap-2"><Icons.Lock size={12} /> Political Obstacle</h4>
-                                <p className="text-xs text-zinc-500">
-                                    Grand Moff Kessler opposes "Heavy Handed" tactics. Panopticon is currently framed as "Infrastructure Security Upgrade" to bypass his veto.
-                                </p>
+                    {/* Alerts */}
+                    <div className="space-y-6">
+                        <Card title="Threat Assessment" alert={true}>
+                            <div className="flex flex-col items-center justify-center py-4 text-center space-y-4">
+                                <Icon name="AlertTriangle" size={48} className="text-red-600 animate-blink" />
+                                <div>
+                                    <div className="text-2xl text-white font-display tracking-widest uppercase">CRITICAL</div>
+                                    <div className="text-red-500/80 text-xs font-mono mt-1 border border-red-900/30 px-2 py-1 bg-red-950/10">SECTOR 7-G (HOK)</div>
                                 </div>
-                                <div className="bg-zinc-950 p-4 border border-zinc-800">
-                                <h4 className="text-white text-xs uppercase mb-2 flex items-center gap-2"><Icons.Cpu size={12} /> Resource Allocation</h4>
-                                <p className="text-xs text-zinc-500">
-                                    10 Billion Credits allocated via Coalition for Improvements (COMPNOR). Budget is hidden within "Public Works" ledgers.
-                                </p>
+                                <div className="w-full pt-4 border-t border-red-900/20">
+                                    <div className="text-[10px] font-mono text-zinc-500 flex justify-between mb-1">
+                                        <span>UNREST</span>
+                                        <span className="text-red-500">92%</span>
+                                    </div>
+                                    <div className="w-full h-1 bg-zinc-900">
+                                        <div className="h-full bg-red-600 w-[92%]"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
+                        </Card>
+                        
+                        <Card title="System Resource Allocation">
+                            <div className="space-y-3 pt-1">
+                                <ProgressBar value={78} label="Surveillance Grid" color="bg-zinc-400" />
+                                <ProgressBar value={45} label="Data Processing" color="bg-zinc-500" />
+                                <ProgressBar value={91} label="Hok Uplink" color="bg-red-600" />
+                            </div>
+                        </Card>
+                    </div>
+                </div>
 
-                    <Card title="Sector Status Markers">
-                        <div className="space-y-3">
-                            {HOK_DETAILS.markers.map((m, i) => (
-                                <div key={i} className="flex items-center justify-between p-2 bg-zinc-950/50 border border-zinc-800 hover:border-zinc-600 transition-colors">
-                                <div className="flex-1">
-                                    <div className="text-xs text-white font-bold uppercase">{m.label}</div>
-                                    <div className="text-[10px] text-zinc-500">{m.note}</div>
-                                </div>
-                                <div className={`px-2 py-1 text-[10px] font-mono border ${
-                                    m.status === 'CRITICAL' ? 'border-red-900 text-red-500 bg-red-900/10' :
-                                    m.status === 'WARNING' ? 'border-yellow-900 text-yellow-500 bg-yellow-900/10' :
-                                    m.status === 'WATCHLIST' ? 'border-blue-900 text-blue-500 bg-blue-900/10' :
-                                    'border-green-900 text-green-500 bg-green-900/10'
-                                }`}>
-                                    {m.status}
-                                </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
+                {/* Scrolling Intel */}
+                <div className="w-full bg-zinc-950 border-y border-zinc-800 py-2 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black z-10 pointer-events-none"></div>
+                    <div className="whitespace-nowrap animate-[marquee_30s_linear_infinite] text-xs font-mono text-zinc-500 uppercase tracking-widest flex gap-8">
+                        <span>+++ PRIORITY ALERT: ENCRYPTED BURST TRANSMISSION DETECTED IN SECTOR 4 +++</span>
+                        <span>+++ ISB DIRECTIVE 994: REPORTING SUSPICIOUS ACTIVITY IS MANDATORY +++</span>
+                        <span>+++ PRIVACY IS A LUXURY THE EMPIRE CANNOT AFFORD +++</span>
+                        <span>+++ GRAND MOFF KESSLER HAS DENIED REQUEST FOR ADDITIONAL GARRISON SUPPORT +++</span>
+                        <span>+++ ORDER IS MERCY +++</span>
                     </div>
                 </div>
             </div>
         );
 
         const Panopticon = () => (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <SectionHeader title="The Panopticon Protocol" subtitle="Systematic Inevitability" />
-
-                {/* Technical Architecture Diagram */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 border border-zinc-800 bg-black">
-                <div className="p-6 border-b lg:border-b-0 lg:border-r border-zinc-800 relative group">
-                    <div className="absolute top-0 left-0 bg-red-600 text-white text-[10px] px-2 py-1 font-mono">LAYER 1</div>
-                    <div className="mt-8 text-center">
-                        <Icons.Database size={40} className="mx-auto text-zinc-600 mb-4 group-hover:text-red-500 transition-colors" />
-                        <h3 className="text-white font-mono uppercase text-lg">Data Collection</h3>
-                        <p className="text-zinc-500 text-xs mt-2 px-4">
-                            Total environmental awareness. Intercepts, biometrics, financial logs, movement tracking.
-                        </p>
+            <div className="space-y-8 animate-slide-in">
+                <div className="flex justify-between items-end border-b-2 border-red-900 pb-6">
+                    <div>
+                        <h2 className="text-4xl font-display font-black text-white tracking-wider uppercase mb-2">Project Panopticon</h2>
+                        <div className="flex items-center gap-3">
+                            <span className="bg-red-600 text-black text-xs font-bold px-2 py-0.5 font-mono">CAT-10 CLEARANCE</span>
+                            <span className="text-red-500 font-mono text-xs tracking-widest uppercase">The Invisible Prison</span>
+                        </div>
+                    </div>
+                    <div className="text-right hidden md:block">
+                        <div className="text-[10px] font-mono text-zinc-500">BUDGET ALLOCATION</div>
+                        <div className="text-xl font-mono text-white">10,000,000,000 CR</div>
+                        <div className="text-[10px] font-mono text-zinc-600 uppercase">(Hidden via COMPNOR Discretionary)</div>
                     </div>
                 </div>
-                <div className="p-6 border-b lg:border-b-0 lg:border-r border-zinc-800 relative group bg-zinc-900/20">
-                    <div className="absolute top-0 left-0 bg-red-600 text-white text-[10px] px-2 py-1 font-mono">LAYER 2</div>
-                    <div className="mt-8 text-center">
-                        <Icons.Cpu size={40} className="mx-auto text-zinc-600 mb-4 group-hover:text-red-500 transition-colors" />
-                        <h3 className="text-white font-mono uppercase text-lg">Algorithmic Analysis</h3>
-                        <p className="text-zinc-500 text-xs mt-2 px-4">
-                            Predictive modeling. Identifying deviation patterns before they manifest as action.
-                        </p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Phases Timeline */}
+                    <div className="lg:col-span-8 space-y-4">
+                        {PROJECT_PHASES.map((phase) => (
+                            <div key={phase.id} className={`border p-6 flex flex-col md:flex-row gap-6 transition-all ${phase.status === 'ACTIVE' ? 'bg-zinc-900/20 border-red-900/50' : 'bg-zinc-950/50 border-zinc-800 opacity-60'}`}>
+                                <div className="md:w-1/4">
+                                    <div className="text-4xl font-display font-black text-zinc-800 absolute select-none pointer-events-none opacity-50 -mt-2">{phase.id}</div>
+                                    <div className={`font-bold font-mono text-lg relative z-10 ${phase.status === 'ACTIVE' ? 'text-red-500' : 'text-zinc-500'}`}>{phase.title}</div>
+                                    <div className="text-[10px] font-mono border border-zinc-800 inline-block px-2 mt-2">{phase.status}</div>
+                                </div>
+                                <div className="md:w-3/4 space-y-3">
+                                    <p className="text-sm font-mono text-zinc-300 leading-relaxed whitespace-pre-wrap">{phase.desc}</p>
+                                    {phase.status === 'ACTIVE' && <ProgressBar value={phase.progress} label="Implementation Status" />}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Live Feed */}
+                    <div className="lg:col-span-4">
+                        <Card title="Citizen Analysis Feed" className="h-full flex flex-col" noPadding={true}>
+                            <div className="p-2 bg-zinc-900/50 border-b border-zinc-800 flex justify-between text-[10px] font-mono text-zinc-500 uppercase">
+                                <span>ID</span>
+                                <span>Trigger</span>
+                                <span>Risk</span>
+                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scroll h-[400px]">
+                                {FEED_DATA.map((item, i) => (
+                                    <div key={i} className="p-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors group">
+                                        <div className="flex justify-between mb-1">
+                                            <span className="font-mono text-xs text-zinc-300">{item.id}</span>
+                                            <span className={`font-mono text-xs font-bold ${item.risk > 80 ? 'text-red-500' : item.risk > 50 ? 'text-yellow-500' : 'text-green-500'}`}>{item.risk}%</span>
+                                        </div>
+                                        <p className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-400 truncate">{item.msg}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="p-2 border-t border-zinc-800 bg-zinc-900/30 text-[10px] font-mono text-zinc-600 text-center">
+                                PROCESSING {Math.floor(Math.random() * 1000) + 18000} VECTORS / SEC
+                            </div>
+                        </Card>
                     </div>
                 </div>
-                <div className="p-6 relative group">
-                    <div className="absolute top-0 left-0 bg-red-600 text-white text-[10px] px-2 py-1 font-mono">LAYER 3</div>
-                    <div className="mt-8 text-center">
-                        <Icons.Activity size={40} className="mx-auto text-zinc-600 mb-4 group-hover:text-red-500 transition-colors" />
-                        <h3 className="text-white font-mono uppercase text-lg">Intervention</h3>
-                        <p className="text-zinc-500 text-xs mt-2 px-4">
-                            Targeted pressure. Employment denial. Credit errors. Social isolation.
-                        </p>
+
+                {/* Philosophy */}
+                <Card title="The Physician's Logic">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div className="text-xs font-mono uppercase text-zinc-500 mb-2">Core Doctrine</div>
+                            <p className="text-sm font-mono text-zinc-300 leading-relaxed italic border-l-2 border-red-900 pl-4">
+                                "We do not wait for the cancer to metastasize. We identify risk factors and intervene early. Detention is not punishment; it is treatment for a societal illness."
+                            </p>
+                        </div>
+                        <div>
+                            <div className="text-xs font-mono uppercase text-zinc-500 mb-2">The False Positive Strategic Value</div>
+                            <p className="text-sm font-mono text-zinc-300 leading-relaxed border-l-2 border-zinc-700 pl-4">
+                                "If only the guilty are punished, the innocent feel safe to deviate. Random or broad targeting creates generalized uncertainty. A population that polices itself out of fear of bureaucratic error is more stable than one that only fears justice."
+                            </p>
+                        </div>
                     </div>
-                </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <div className="group relative">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-zinc-900 opacity-20 group-hover:opacity-50 transition duration-500 blur"></div>
-                    <Card title="PHASE I: AWARENESS" className="h-full bg-black">
-                        <div className="text-6xl font-thin text-zinc-800 absolute right-4 top-10 pointer-events-none">01</div>
-                        <Icons.Eye className="text-red-600 mb-4" size={32} />
-                        <h4 className="text-white font-mono text-lg mb-2">Total Integration</h4>
-                        <p className="text-zinc-400 text-xs font-mono leading-relaxed">
-                            Eliminate privacy. Integrate existing data streams (Tax, Health, Comm) into a single profile.
-                        </p>
-                    </Card>
-                </div>
-
-                <div className="group relative">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-zinc-900 opacity-20 group-hover:opacity-50 transition duration-500 blur"></div>
-                    <Card title="PHASE II: PREDICTION" className="h-full bg-black">
-                        <div className="text-6xl font-thin text-zinc-800 absolute right-4 top-10 pointer-events-none">02</div>
-                        <Icons.ScanLine className="text-red-600 mb-4" size={32} />
-                        <h4 className="text-white font-mono text-lg mb-2">Preventive Action</h4>
-                        <p className="text-zinc-400 text-xs font-mono leading-relaxed">
-                            Intervene based on probability. "False Positives" create generalized caution (The Panopticon Effect).
-                        </p>
-                    </Card>
-                </div>
-
-                <div className="group relative">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-zinc-900 opacity-20 group-hover:opacity-50 transition duration-500 blur"></div>
-                    <Card title="PHASE III: CONDITIONING" className="h-full bg-black">
-                        <div className="text-6xl font-thin text-zinc-800 absolute right-4 top-10 pointer-events-none">03</div>
-                        <Icons.Users className="text-red-600 mb-4" size={32} />
-                        <h4 className="text-white font-mono text-lg mb-2">Social Reinforcement</h4>
-                        <p className="text-zinc-400 text-xs font-mono leading-relaxed">
-                            Loyalty becomes the path of least resistance. Rebellion becomes psychologically aversive.
-                        </p>
-                    </Card>
-                </div>
-                </div>
-
-                <Card title="The Physician's Philosophy">
-                <div className="flex gap-4">
-                    <div className="w-1 bg-red-800 shrink-0"></div>
-                    <div className="space-y-2">
-                        <p className="text-zinc-300 font-mono italic text-sm">
-                        "We are not creating a prison. We are creating a safe structure. A person living in an orderly society where threats are prevented has more real freedom than someone in a chaotic society where they are theoretically free but practically endangered."
-                        </p>
-                        <p className="text-red-500 font-mono text-xs">- Director Valen Krask, 5 ABY</p>
-                    </div>
-                </div>
                 </Card>
             </div>
         );
 
-        const NetworkAssets = () => (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionHeader title="Network Assets" subtitle="Key Personnel Tracking" />
+        const TargetHok = () => (
+            <div className="space-y-6 animate-slide-in">
+                <div className="flex justify-between items-end border-b border-zinc-800 pb-4">
+                    <div>
+                        <h2 className="text-3xl font-display text-white tracking-[0.2em] uppercase">Target: Hok</h2>
+                        <p className="text-zinc-500 font-mono text-xs tracking-widest mt-1">MID RIM // OVERSECTOR FOUR // 18.2M POPULATION</p>
+                    </div>
+                    <div className="text-right">
+                        <div className="text-red-500 font-bold font-mono border border-red-500 px-2 py-1 text-xs">THREAT LEVEL: RISING</div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1 space-y-6">
+                        {/* Planet Viz */}
+                        <div className="aspect-square bg-zinc-950 border border-zinc-800 flex items-center justify-center relative overflow-hidden group tech-border">
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(50,50,50,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(50,50,50,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+                            <div className="w-48 h-48 rounded-full bg-zinc-900 border border-zinc-700 relative shadow-[0_0_50px_rgba(255,255,255,0.02)] flex items-center justify-center">
+                                <div className="w-48 h-48 rounded-full border-t border-zinc-600 absolute animate-[spin_10s_linear_infinite] opacity-20"></div>
+                                <div className="w-40 h-40 rounded-full border-b border-red-900 absolute animate-[spin_15s_linear_infinite_reverse]"></div>
+                                <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-red-500 rounded-full animate-blink"></div>
+                            </div>
+                            <div className="absolute bottom-4 left-4 text-[10px] font-mono text-red-500 bg-black/80 px-2 border border-red-900">SECTOR 7-G ACTIVE</div>
+                        </div>
+
+                        <Card title="The Kessler Obstacle" alert={true}>
+                            <div className="text-xs font-mono space-y-4">
+                                <p className="text-zinc-400">Grand Moff Kessler advocates <span className="text-white">"Trust-Based Governance."</span> He blocked previous ISB expansion.</p>
+                                <div className="p-3 border border-red-900/30 bg-red-950/10">
+                                    <div className="uppercase text-[10px] text-red-500 mb-1">Strategy</div>
+                                    <p className="text-zinc-300">Use rising labor unrest in his own sector to prove his philosophy creates chaos. Frame Panopticon as "Infrastructure Security Audit 994".</p>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card title="Operational Intel">
+                            <div className="prose prose-invert prose-sm font-mono max-w-none text-xs leading-relaxed text-zinc-400">
+                                <p className="mb-4">
+                                    <strong className="text-white block mb-1 uppercase tracking-wider border-b border-zinc-800 pb-1 w-fit">Sector 7-G (Mining)</strong>
+                                    Labor unrest is spiking. Mining guilds are organizing shifts to hide unauthorized meetings. This is the perfect petri dish. We will allow the unrest to grow slightly to justify the surveillance grid, then crush it systematically in Phase II.
+                                </p>
+                                <p className="mb-4">
+                                    <strong className="text-white block mb-1 uppercase tracking-wider border-b border-zinc-800 pb-1 w-fit">Resource Extraction</strong>
+                                    Doonium and Tibanna reserves are critical for fleet maintenance. Disruption cannot exceed 15%. Current disruption: 8%.
+                                </p>
+                            </div>
+                        </Card>
+                        
+                        <Card title="Surveillance Markers" noPadding={true}>
+                             <div className="grid grid-cols-1 divide-y divide-zinc-800">
+                                {[
+                                    { target: "Mining Guild", status: "INFILTRATED", agents: "3 Active", risk: "HIGH" },
+                                    { target: "University", status: "MONITORED", agents: "Audio Only", risk: "MED" },
+                                    { target: "Spaceport", status: "LOCKED DOWN", agents: "Garrison", risk: "LOW" }
+                                ].map((m, i) => (
+                                    <div key={i} className="p-4 flex justify-between items-center text-xs font-mono hover:bg-zinc-900">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-2 h-2 rounded-full ${m.risk === 'HIGH' ? 'bg-red-600' : m.risk === 'MED' ? 'bg-yellow-600' : 'bg-green-600'}`}></div>
+                                            <span className="text-white font-bold">{m.target}</span>
+                                        </div>
+                                        <div className="flex gap-6">
+                                            <span className="text-zinc-500">{m.agents}</span>
+                                            <span className={`px-2 py-0.5 border ${m.status === 'INFILTRATED' ? 'border-green-900 text-green-500' : 'border-red-900 text-red-500'}`}>{m.status}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                             </div>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Dossiers = () => (
+            <div className="space-y-6 animate-slide-in">
+                <h2 className="text-2xl font-display text-white tracking-[0.2em] uppercase border-b border-zinc-800 pb-4 mb-6">Personnel & Assets</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {PERSONNEL.map((p) => (
-                        <Card key={p.id} className="flex flex-col h-full">
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="w-16 h-16 bg-zinc-800 border border-zinc-600 flex items-center justify-center">
-                                <Icons.UserCheck size={24} className="text-zinc-500" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[
+                        {
+                            id: "ISB-DIR-III-MARUS", name: "Thane Marus", role: "Project Director", status: "DEPLOYED", loyalty: 94,
+                            details: "42 years old. Pragmatic, intelligent, capable of 'necessary cruelty'. Family used as leverage point. Hesitant about consequences but obeys logic. Personally recruited for Panopticon.",
+                            initial: "TM"
+                        },
+                        {
+                            id: "GM-GARRIK-KESSLER", name: "Garrik Kessler", role: "Grand Moff", status: "SURVEILLANCE", loyalty: 40,
+                            details: "Political adversary. Reformist. Unaware of Panopticon's full scope. Believes Marus is a safety inspector. Vulnerability: Pride in his 'peaceful' sector.",
+                            initial: "GK"
+                        }
+                    ].map((person) => (
+                        <Card key={person.id} className="hover:border-zinc-600 transition-colors" noPadding={true}>
+                            <div className="p-6">
+                                <div className="flex items-start gap-4 mb-6">
+                                    <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center font-display text-2xl text-zinc-600">
+                                        {person.initial}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-lg font-mono font-bold text-white">{person.name}</div>
+                                        <div className="text-xs font-mono text-red-500 uppercase mb-2">{person.role}</div>
+                                        <div className="text-[10px] font-mono text-zinc-500 bg-zinc-900/50 inline-block px-2 py-1">{person.id}</div>
+                                    </div>
+                                    <div className={`text-[10px] px-2 py-1 border ${person.status === 'DEPLOYED' ? 'border-green-900 text-green-500' : 'border-yellow-900 text-yellow-500'}`}>
+                                        {person.status}
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    <div className="bg-black p-3 border border-zinc-800">
+                                        <div className="text-[10px] text-zinc-500 uppercase mb-1">Psych Profile</div>
+                                        <p className="text-xs font-mono text-zinc-400 leading-relaxed whitespace-pre-wrap">{person.details}</p>
+                                    </div>
+                                    <ProgressBar value={person.loyalty} label="Loyalty Index" color={person.loyalty > 80 ? "bg-green-600" : "bg-red-600"} />
+                                </div>
                             </div>
-                            <div className={`text-[10px] px-2 py-1 border ${p.status.includes("SURVEILLANCE") ? "border-yellow-900 text-yellow-500" : "border-green-900 text-green-500"}`}>
-                                {p.status}
-                            </div>
-                        </div>
-                        
-                        <h3 className="text-white font-mono text-lg">{p.name}</h3>
-                        <p className="text-red-500 text-xs font-mono uppercase mb-4">{p.rank}</p>
-                        
-                        <div className="space-y-3 flex-1">
-                            <div className="grid grid-cols-[80px_1fr] text-xs font-mono">
-                                <span className="text-zinc-500">ROLE:</span>
-                                <span className="text-zinc-300">{p.role}</span>
-                            </div>
-                            <div className="grid grid-cols-[80px_1fr] text-xs font-mono">
-                                <span className="text-zinc-500">LOYALTY:</span>
-                                <span className={`${p.loyalty.includes("CONDITIONAL") ? "text-yellow-500" : "text-green-500"}`}>{p.loyalty}</span>
-                            </div>
-                            <div className="bg-zinc-950 p-3 border border-zinc-800 mt-2">
-                                <p className="text-[10px] text-zinc-400 leading-relaxed italic">"{p.assessment}"</p>
-                            </div>
-                        </div>
                         </Card>
                     ))}
                 </div>
             </div>
         );
 
-        const LiveFeed = () => {
-            const [feed, setFeed] = useState(CITIZEN_FEED);
+        const Archives = () => (
+            <div className="space-y-6 animate-slide-in">
+                <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+                    <h2 className="text-2xl font-display text-white tracking-[0.2em] uppercase">Private Archives</h2>
+                    <Icon name="Lock" className="text-red-600" />
+                </div>
+                
+                <div className="space-y-4">
+                    {[
+                        { date: "5 ABY - 05:47", title: "The Ivory Tower", text: "The city transitions from night to day. Coruscant never truly sleeps. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure." },
+                        { date: "5 ABY - 19:30", title: "Marus Selection", text: "Marus accepted. He is not certain, which is good. Zealots make mistakes; pragmatists make progress. He asked about false positives. I told him they are a feature. If only the guilty are punished, the innocent feel safe to deviate." },
+                        { date: "REF: 19 BBY", title: "The Mother Incident", text: "My mother. Lyssa. History teacher. She could not adapt to the New Order. I reviewed her file myself. I recommended her for 'ideological counseling'. Three months re-education. She never spoke to me again. I showed mercy. I chose the minimal intervention necessary. I am a surgeon." },
+                        { date: "5 ABY - 21:15", title: "The Physician's Duty", text: "I do not hate the rebels. I pity them. They are children smashing the foundations of the house that shelters them. When it collapses, they will cry for someone to save them. And we will be there. Order is mercy. Chaos is cruelty." }
+                    ].map((log, i) => (
+                        <div key={i} className="border border-zinc-800 bg-zinc-950/50 p-6 hover:bg-zinc-900 transition-colors group tech-border">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="text-sm font-mono font-bold text-white group-hover:text-red-500 transition-colors uppercase">{log.title}</h3>
+                                <span className="text-[10px] font-mono text-zinc-600">{log.date}</span>
+                            </div>
+                            <p className="text-xs font-mono text-zinc-400 leading-relaxed whitespace-pre-wrap pl-4 border-l border-zinc-800 group-hover:border-red-900 transition-colors">{log.text}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
 
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    setFeed(prev => {
-                    const newFeed = [...prev];
-                    const idx = Math.floor(Math.random() * newFeed.length);
-                    const newRisk = Math.floor(Math.random() * 100);
-                    newFeed[idx] = {
-                        ...newFeed[idx],
-                        risk: newRisk,
-                        status: newRisk > 80 ? "INTERVENTION" : newRisk > 50 ? "WARNING" : "COMPLIANT",
-                        action: newRisk > 80 ? "Detention" : newRisk > 50 ? "Monitor" : "None"
-                    };
-                    return newFeed;
-                    });
-                }, 2000);
-                return () => clearInterval(interval);
-            }, []);
+        // --- LOGIN SCREEN ---
+
+        const LoginScreen = ({ onLogin }) => {
+            const [step, setStep] = useState(0);
+
+            const handleInsert = () => {
+                if(step > 0) return;
+                setStep(1); // Drop
+                setTimeout(() => setStep(2), 1000); // Rotate
+                setTimeout(() => setStep(3), 1600); // Verify
+                setTimeout(() => {
+                    setStep(4);
+                    setTimeout(onLogin, 1500);
+                }, 3500);
+            };
 
             return (
-                <div className="space-y-6 animate-in fade-in duration-500">
-                    <SectionHeader title="Algorithmic Surveillance" subtitle="Real-time Processing Node: HOK-PRIME" />
+                <div className="min-h-screen bg-black flex flex-col items-center justify-center relative">
+                    <div className="grid-bg absolute inset-0 opacity-30 pointer-events-none"></div>
                     
-                    <Card title="Live Subject Stream">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left font-mono text-xs">
-                            <thead>
-                                <tr className="border-b border-zinc-800 text-zinc-500 uppercase tracking-wider">
-                                <th className="pb-3 pl-2">Subject ID</th>
-                                <th className="pb-3">Risk %</th>
-                                <th className="pb-3">Status</th>
-                                <th className="pb-3">Auto-Action</th>
-                                <th className="pb-3 hidden md:table-cell">Analysis Vector</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-zinc-800/50">
-                                {feed.map((item) => (
-                                <tr key={item.id} className="hover:bg-zinc-800/20 transition-colors">
-                                    <td className="py-3 pl-2 text-zinc-300">{item.id}</td>
-                                    <td className={`py-3 ${item.risk > 70 ? 'text-red-500 font-bold' : item.risk > 40 ? 'text-yellow-500' : 'text-green-500'}`}>
-                                        {item.risk}%
-                                    </td>
-                                    <td className="py-3">
-                                        <span className={`px-2 py-1 rounded-sm text-[10px] uppercase border ${
-                                            item.status === 'INTERVENTION' ? 'border-red-900 bg-red-900/20 text-red-500' :
-                                            item.status === 'WARNING' ? 'border-yellow-900 bg-yellow-900/20 text-yellow-500' :
-                                            'border-green-900 bg-green-900/20 text-green-500'
-                                        }`}>
-                                            {item.status}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 text-zinc-400">{item.action}</td>
-                                    <td className="py-3 text-zinc-500 hidden md:table-cell truncate max-w-xs">{item.analysis}</td>
-                                </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="mt-4 flex justify-between items-center text-xs font-mono text-zinc-600">
-                        <span className="animate-pulse">PROCESSING...</span>
-                        <span>BUFFER: 99.4%</span>
-                    </div>
-                    </Card>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card title="Anomaly Detection">
-                        <div className="h-32 flex items-end gap-1 border-b border-zinc-700 pb-1">
-                            {[40, 60, 30, 80, 50, 90, 20, 45, 70, 65, 85, 95, 40, 30, 50].map((h, i) => (
-                                <div key={i} className={`flex-1 ${h > 80 ? 'bg-red-600' : 'bg-zinc-700'} transition-all duration-1000`} style={{ height: `${h}%` }}></div>
-                            ))}
+                    <div className="relative z-10 flex flex-col items-center">
+                        <div className="mb-16 text-center">
+                            <h1 className="text-7xl font-display font-black text-white tracking-[0.2em] mb-2 opacity-90">ISB</h1>
+                            <div className="text-[10px] font-mono text-zinc-600 tracking-[0.5em] uppercase">Central Administrative Node</div>
                         </div>
-                        <p className="text-xs text-zinc-500 mt-2 font-mono">Spike detected in Sector 7-G (Mining Habitat). Correlated with shift change.</p>
-                    </Card>
 
-                    <Card title="System Resources">
-                        <div className="space-y-4 pt-2">
-                            <div>
-                                <div className="flex justify-between text-xs font-mono text-zinc-400 mb-1">
-                                <span>Processing Cores</span>
-                                <span>89%</span>
-                                </div>
-                                <div className="w-full bg-zinc-800 h-1">
-                                <div className="bg-zinc-400 h-1 w-[89%]"></div>
+                        {/* Lock Mechanism */}
+                        <div 
+                            onClick={handleInsert}
+                            className={`relative w-64 h-64 rounded-full border-4 ${step === 4 ? 'border-green-900 shadow-[0_0_50px_rgba(16,185,129,0.2)]' : 'border-zinc-800'} bg-zinc-950 flex items-center justify-center cursor-pointer hover:border-zinc-700 transition-all duration-500 group`}
+                        >
+                            {/* Inner Lock */}
+                            <div className={`w-48 h-48 rounded-full border border-dashed border-zinc-700 flex items-center justify-center transition-transform duration-500 ${step === 2 ? 'rotate-90' : ''}`}>
+                                {/* Lock Detailing */}
+                                <div className="absolute w-full h-1 bg-zinc-900/0 group-hover:bg-zinc-900/50 top-1/2 -translate-y-1/2"></div>
+                                <div className="absolute h-full w-1 bg-zinc-900/0 group-hover:bg-zinc-900/50 left-1/2 -translate-x-1/2"></div>
+                                <div className={`w-32 h-32 rounded-full border border-zinc-800 flex items-center justify-center ${step === 3 ? 'bg-red-900/10 animate-pulse' : step === 4 ? 'bg-green-900/10' : 'bg-black'}`}>
+                                    <div className="w-4 h-4 rounded-full bg-zinc-800"></div>
                                 </div>
                             </div>
-                            <div>
-                                <div className="flex justify-between text-xs font-mono text-zinc-400 mb-1">
-                                <span>Storage (Petabytes)</span>
-                                <span>12%</span>
-                                </div>
-                                <div className="w-full bg-zinc-800 h-1">
-                                <div className="bg-zinc-400 h-1 w-[12%]"></div>
+
+                            {/* Code Cylinder */}
+                            <div className={`absolute top-0 w-10 h-40 bg-gradient-to-b from-zinc-400 to-zinc-600 rounded-b-md shadow-2xl z-20 transition-all duration-500 ${step >= 1 ? 'translate-y-0 opacity-100' : '-translate-y-48 opacity-0'}`}>
+                                <div className="absolute top-4 w-full h-1 bg-red-600 shadow-[0_0_10px_red]"></div>
+                                <div className="absolute bottom-4 w-full flex justify-center">
+                                    <div className={`w-2 h-2 rounded-full ${step >= 3 ? 'bg-red-500 animate-blink' : 'bg-zinc-800'}`}></div>
                                 </div>
                             </div>
+
+                            {/* Status Text */}
+                            <div className="absolute -bottom-20 text-center">
+                                {step === 0 && <div className="text-xs font-mono text-zinc-500 tracking-widest animate-pulse">[ INSERT S-COMP ]</div>}
+                                {step === 3 && <div className="text-xs font-mono text-red-500 tracking-widest">VERIFYING BIOMETRICS...</div>}
+                                {step === 4 && <div className="text-xs font-mono text-green-500 tracking-widest">IDENTITY CONFIRMED</div>}
+                            </div>
                         </div>
-                    </Card>
                     </div>
                 </div>
             );
         };
 
-        const Archives = () => (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-                <SectionHeader title="Secure Archives" subtitle="Personal Logs: Director Krask" />
-                
-                <div className="grid gap-6">
-                    {LOGS.map((log) => (
-                        <Card key={log.id} title={`${log.id} // ${log.date}`}>
-                        <div className="flex flex-col gap-2">
-                            <h4 className="text-white font-mono text-sm border-l-2 border-red-600 pl-3">{log.subject}</h4>
-                            <p className="text-zinc-400 font-mono text-sm leading-relaxed whitespace-pre-line mt-2 bg-black/30 p-4 rounded border border-zinc-800/50">
-                                {log.content}
-                            </p>
-                        </div>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-        );
-
-        // --- MAIN APP ---
+        // --- APP SHELL ---
 
         const App = () => {
-            const [authStage, setAuthStage] = useState('login'); // login, boot, active
-            const [activeTab, setActiveTab] = useState('dashboard');
-            const [showMobileMenu, setShowMobileMenu] = useState(false);
+            const [auth, setAuth] = useState(false);
+            const [booting, setBooting] = useState(false);
+            const [tab, setTab] = useState('dashboard');
 
             const handleLogin = () => {
-                setAuthStage('boot');
+                setAuth(true);
+                setBooting(true);
+                setTimeout(() => setBooting(false), 2500);
             };
 
-            const handleBootComplete = () => {
-                setAuthStage('active');
-            };
+            if (!auth) return <LoginScreen onLogin={handleLogin} />;
 
-            if (authStage === 'login') {
-                return <LoginScreen onLogin={handleLogin} />;
-            }
-
-            if (authStage === 'boot') {
-                return <BootSequence onComplete={handleBootComplete} />;
-            }
-
-            const renderContent = () => {
-                switch (activeTab) {
-                case 'dashboard': return <Dashboard />;
-                case 'target': return <TargetProfile />;
-                case 'network': return <NetworkAssets />;
-                case 'panopticon': return <Panopticon />;
-                case 'live': return <LiveFeed />;
-                case 'archives': return <Archives />;
-                default: return <Dashboard />;
-                }
-            };
+            if (booting) return (
+                <div className="min-h-screen bg-black p-12 font-mono text-sm text-red-600 flex flex-col justify-end">
+                    <Typewriter text="> CONNECTING TO CENTRAL CORE..." speed={5} delay={0} className="block text-white" />
+                    <Typewriter text="> DECRYPTING PANOPTICON VOLUMES..." speed={5} delay={400} className="block" />
+                    <Typewriter text="> LOADING USER PROFILE: KRASK..." speed={5} delay={800} className="block" />
+                    <Typewriter text="> ESTABLISHING UPLINK: HOK..." speed={5} delay={1200} className="block" />
+                    <Typewriter text="> SYSTEM READY." speed={10} delay={1800} className="block text-white mt-4" />
+                </div>
+            );
 
             return (
-                <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-red-900 selection:text-white overflow-hidden flex flex-col md:flex-row">
-                
-                {/* Sidebar Navigation */}
-                <aside className="hidden md:flex flex-col w-72 border-r border-zinc-800 bg-zinc-950/50 backdrop-blur-sm h-screen sticky top-0">
-                    <div className="p-8 border-b border-zinc-800">
-                        <div className="flex items-center gap-3 text-white mb-2">
-                        <Icons.Shield size={32} className="text-white" />
-                        <div className="leading-none">
-                            <div className="font-bold tracking-widest text-lg">ISB</div>
-                            <div className="text-[10px] text-zinc-500 tracking-[0.2em] uppercase">Central Admin</div>
+                <div className="flex h-screen bg-black">
+                    {/* Sidebar */}
+                    <aside className="w-72 bg-zinc-950 border-r border-zinc-800 hidden md:flex flex-col relative z-20">
+                        <div className="p-8 border-b border-zinc-800">
+                            <div className="flex items-center gap-4 text-white mb-2">
+                                <Icon name="Shield" size={32} className="text-red-600" />
+                                <div>
+                                    <div className="font-display font-black text-2xl tracking-widest leading-none">ISB</div>
+                                    <div className="font-mono text-[10px] text-zinc-500 tracking-[0.4em]">CENTRAL</div>
+                                </div>
+                            </div>
                         </div>
-                        </div>
-                        <div className="mt-4 text-[10px] font-mono text-red-600 border border-red-900/30 bg-red-900/10 p-2 text-center">
-                        CLEARANCE: CATEGORY 10
-                        </div>
-                    </div>
+                        
+                        <nav className="flex-1 py-6 space-y-1">
+                            {[
+                                { id: 'dashboard', label: 'Command Deck', icon: 'Terminal' },
+                                { id: 'panopticon', label: 'Project Panopticon', icon: 'Eye' },
+                                { id: 'hok', label: 'Target: Hok', icon: 'Globe' },
+                                { id: 'dossiers', label: 'Personnel', icon: 'Users' },
+                                { id: 'archives', label: 'Archives', icon: 'FileText' },
+                            ].map(item => (
+                                <button 
+                                    key={item.id}
+                                    onClick={() => setTab(item.id)}
+                                    className={`w-full flex items-center gap-4 px-8 py-4 text-xs font-mono uppercase tracking-wider border-l-2 transition-all duration-200 ${
+                                        tab === item.id 
+                                        ? 'border-red-600 bg-zinc-900 text-white' 
+                                        : 'border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30'
+                                    }`}
+                                >
+                                    <Icon name={item.icon} size={16} className={tab === item.id ? "text-red-500" : ""} />
+                                    {item.label}
+                                </button>
+                            ))}
+                        </nav>
 
-                    <nav className="flex-1 overflow-y-auto py-6 space-y-2">
-                        <SidebarItem icon={Icons.Terminal} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-                        <SidebarItem icon={Icons.Globe} label="Target: Hok" active={activeTab === 'target'} onClick={() => setActiveTab('target')} />
-                        <SidebarItem icon={Icons.Users} label="Network Assets" active={activeTab === 'network'} onClick={() => setActiveTab('network')} />
-                        <SidebarItem icon={Icons.Eye} label="Panopticon" active={activeTab === 'panopticon'} onClick={() => setActiveTab('panopticon')} />
-                        <SidebarItem icon={Icons.Activity} label="Live Feed" active={activeTab === 'live'} onClick={() => setActiveTab('live')} alert={true} />
-                        <SidebarItem icon={Icons.Database} label="Secure Archives" active={activeTab === 'archives'} onClick={() => setActiveTab('archives')} />
-                    </nav>
-
-                    <div className="p-6 border-t border-zinc-800">
-                        <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-zinc-800 rounded-sm border border-zinc-600 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="p-6 border-t border-zinc-800">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></div>
+                                </div>
+                                <div>
+                                    <div className="text-white font-mono text-xs font-bold">DIR. KRASK</div>
+                                    <div className="text-[10px] text-zinc-600 font-mono">ID: ISB-ALPHA</div>
+                                </div>
+                            </div>
+                            <button onClick={() => setAuth(false)} className="w-full border border-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-red-500 hover:border-red-900 py-2 transition-colors uppercase tracking-widest">
+                                Eject Cylinder
+                            </button>
                         </div>
-                        <div className="font-mono text-xs">
-                            <div className="text-white">DIR. KRASK</div>
-                            <div className="text-zinc-600">ID: ISB-001-ALPHA</div>
-                        </div>
-                        </div>
-                    </div>
-                </aside>
+                    </aside>
 
-                {/* Mobile Header */}
-                <div className="md:hidden border-b border-zinc-800 p-4 flex justify-between items-center bg-zinc-950">
-                    <div className="flex items-center gap-2">
-                        <Icons.Shield size={24} className="text-white" />
-                        <span className="font-bold tracking-widest text-white">ISB TERMINAL</span>
-                    </div>
-                    <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="text-white">
-                        {showMobileMenu ? <Icons.X /> : <Icons.Terminal />}
-                    </button>
-                </div>
-
-                {/* Mobile Menu Overlay */}
-                {showMobileMenu && (
-                    <div className="md:hidden absolute inset-0 z-50 bg-black/95 p-6 space-y-4">
-                        <SidebarItem icon={Icons.Terminal} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => {setActiveTab('dashboard'); setShowMobileMenu(false)}} />
-                        <SidebarItem icon={Icons.Globe} label="Target: Hok" active={activeTab === 'target'} onClick={() => {setActiveTab('target'); setShowMobileMenu(false)}} />
-                        <SidebarItem icon={Icons.Users} label="Network Assets" active={activeTab === 'network'} onClick={() => {setActiveTab('network'); setShowMobileMenu(false)}} />
-                        <SidebarItem icon={Icons.Eye} label="Panopticon" active={activeTab === 'panopticon'} onClick={() => {setActiveTab('panopticon'); setShowMobileMenu(false)}} />
-                        <SidebarItem icon={Icons.Activity} label="Live Feed" active={activeTab === 'live'} onClick={() => {setActiveTab('live'); setShowMobileMenu(false)}} />
-                        <SidebarItem icon={Icons.Database} label="Secure Archives" active={activeTab === 'archives'} onClick={() => {setActiveTab('archives'); setShowMobileMenu(false)}} />
-                        <button onClick={() => setShowMobileMenu(false)} className="absolute top-4 right-4 text-white"><Icons.X /></button>
-                    </div>
-                )}
-
-                {/* Main Content Area */}
-                <main className="flex-1 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-900 via-black to-black relative">
-                    {/* Background Grid */}
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none"></div>
-                    
-                    {/* Scanline Effect */}
-                    <div className="fixed inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%] pointer-events-none z-50 pointer-events-none opacity-20"></div>
-
-                    <div className="p-6 md:p-12 relative z-10 max-w-7xl mx-auto">
-                        <header className="flex justify-between items-end mb-12 border-b-2 border-zinc-800 pb-4">
-                        <div>
-                            <h1 className="text-4xl md:text-5xl font-light text-white uppercase tracking-widest font-mono">Project {PROJECT_DATA.codename}</h1>
-                            <p className="text-zinc-500 font-mono mt-2 flex items-center gap-2">
-                                <Icons.Lock size={14} /> SECURE CONNECTION // {PROJECT_DATA.location}
-                            </p>
-                        </div>
-                        <div className="hidden md:block text-right font-mono text-xs text-zinc-600">
-                            <div>SYS_TIME: 19:42:01</div>
-                            <div>UPTIME: 99.999%</div>
-                        </div>
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
+                        <div className="grid-bg absolute inset-0 opacity-20 pointer-events-none"></div>
+                        
+                        {/* Top Bar */}
+                        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-8 bg-zinc-950/80 backdrop-blur-sm z-10">
+                            <div className="font-mono text-xs text-red-600 tracking-[0.2em] flex items-center gap-3">
+                                <div className="w-1.5 h-1.5 bg-red-600 animate-pulse"></div>
+                                SECURE UPLINK ESTABLISHED
+                            </div>
+                            <div className="hidden md:flex gap-8 text-[10px] font-mono text-zinc-600 uppercase">
+                                <span>Encryption: AES-ROT-256</span>
+                                <span>Bandwidth: 94%</span>
+                                <span>Node: Coruscant-Prime</span>
+                            </div>
                         </header>
 
-                        {renderContent()}
-                    </div>
-                </main>
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scroll">
+                            <div className="max-w-7xl mx-auto">
+                                {tab === 'dashboard' && <Dashboard />}
+                                {tab === 'panopticon' && <Panopticon />}
+                                {tab === 'hok' && <TargetHok />}
+                                {tab === 'dossiers' && <Dossiers />}
+                                {tab === 'archives' && <Archives />}
+                            </div>
+                        </div>
+                    </main>
                 </div>
             );
         };

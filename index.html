@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISB // CENTRAL // KRASK</title>
+    <title>ISB // CENTRAL // KRASK // SECURE</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & ReactDOM -->
@@ -42,6 +42,23 @@
             background-image:
                 linear-gradient(to right, rgba(39, 39, 42, 0.1) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(39, 39, 42, 0.1) 1px, transparent 1px);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 0, 0, 0.05) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
         }
 
         /* Animations */
@@ -108,7 +125,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
         // --- SVG ICONS ---
         const Icon = ({ name, size = 20, className = "" }) => {
@@ -121,11 +138,10 @@
                 Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
                 Globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
                 Terminal: <><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>,
-                LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
                 AlertTriangle: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+                Database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
                 Cpu: <><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></>,
-                Target: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>,
-                Briefcase: <><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></>
+                Key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>
             };
 
             return (
@@ -146,26 +162,146 @@
             );
         };
 
-        // --- DATA ---
+        // --- DATA FROM PDFS ---
+
+        const KRASK_PROFILE = {
+            name: "Valen Krask",
+            rank: "Director",
+            born: "50 BBY, Alsakan",
+            aliases: ["The Physician", "The Reasonable Man", "The Surgeon"],
+            traits: ["Clinical", "Austere", "Systematic", "Ideologically Absolute"],
+            quote: "Order is mercy. Chaos is cruelty. Everything else is sentiment."
+        };
+
+        const HOK_INITIATIVE = {
+            name: "Project Panopticon",
+            formalName: "Comprehensive Social Equilibrium Initiative",
+            location: "Hok (Mid Rim / Oversector 4)",
+            targetPop: "18.2 Million",
+            governor: "Grand Moff Garrik Kessler (Reformist)",
+            budget: "10,000,000,000 CR (COMPNOR Discretionary)",
+            status: "PHASE I: FOUNDATION",
+            clearance: "Category Ten: Imperial Eyes Only"
+        };
+
+        const PHASES = [
+            { id: "I", title: "FOUNDATION", months: "1-3", status: "ACTIVE", progress: 85, desc: "Recruitment, infrastructure assessment, data integration framework. 'Building the eyes before opening them.'" },
+            { id: "II", title: "INFRASTRUCTURE", months: "4-6", status: "PENDING", progress: 0, desc: "Physical deployment. 70% surveillance coverage. Activation of analytical cores." },
+            { id: "III", title: "OPERATIONS", months: "7-12", status: "LOCKED", progress: 0, desc: "Predictive intervention active. Graduated pressure protocols. 'We treat the illness before symptoms appear.'" },
+            { id: "IV", title: "CONDITIONING", months: "13-24", status: "LOCKED", progress: 0, desc: "Full behavioral modification. Systemic inevitability. 'Rebellion becomes psychologically impossible.'" }
+        ];
 
         const FEED_DATA = [
-            { id: "HOK-771", type: "BIO", msg: "Subject 99201 pulse elevated during anthem. Flagged.", risk: 82 },
-            { id: "COR-442", type: "FIN", msg: "Irregular credit transfer detected: 400cr to unidentified shell.", risk: 45 },
-            { id: "HOK-119", type: "VOC", msg: "Keyword detected in mess hall: 'Union'. Audio logged.", risk: 91 },
-            { id: "OUT-882", type: "LOC", msg: "Unauthorized movement in Sector 4 restricted zone.", risk: 65 },
-            { id: "SYS-001", type: "NET", msg: "Panopticon Node 4 online. Data stream synchronized.", risk: 0 },
-            { id: "HOK-553", type: "SOC", msg: "Subject 8812 reduced social contact. Isolation protocol effective.", risk: 12 }
+            { id: "SYS-991", type: "NET", msg: "Encrypted burst from Kessel Sector. Analysis: Rebellion chatter regarding spice shipment diversion.", risk: 78 },
+            { id: "HOK-LAB", type: "SOC", msg: "Hok Mining Guild Local 442 holding unauthorized shift meetings. Leader: 'Kalen'.", risk: 65 },
+            { id: "COR-FIN", type: "ECO", msg: "Budget transfer verified: 2B Credits to 'Infrastructure Repair' (Panopticon shell).", risk: 0 },
+            { id: "INT-VAL", type: "BIO", msg: "Director Marus biometric stress elevated during briefing. Loyalty: Confirmed.", risk: 12 },
+            { id: "SYS-EXT", type: "NET", msg: "Grand Moff Kessler requesting audit of ISB expansion in Oversector 4. Request Denied.", risk: 45 },
+            { id: "BRN-REJ", type: "LOG", msg: "Brentaal IV site assessment: REJECTED. Too high profile for pilot program.", risk: 0 },
+            { id: "COL-REJ", type: "LOG", msg: "Columex site assessment: REJECTED. Population compliance already exceeds baseline.", risk: 0 }
         ];
 
-        const PROJECT_PHASES = [
-            { id: "I", title: "AWARENESS", status: "ACTIVE", progress: 100, desc: "Total information gathering. Integration of financial, medical, and communication streams into unified profiles." },
-            { id: "II", title: "PREDICTION", status: "ACTIVE", progress: 35, desc: "Algorithmic identification of deviation. Pre-crime intervention protocols enabled. 'We treat the illness before symptoms appear.'" },
-            { id: "III", title: "CONDITIONING", status: "LOCKED", progress: 0, desc: "Systematic environmental modification. Reward/punishment integration at societal scale. Generalized caution." }
-        ];
+        // --- CHART COMPONENTS ---
 
-        // --- COMPONENTS ---
+        const RadarChart = ({ data, color = "#b91c1c", size = 200 }) => {
+            // Simple 5-point radar chart
+            const center = size / 2;
+            const radius = (size / 2) - 10;
+            const angleStep = (Math.PI * 2) / 5;
+            
+            const points = data.map((val, i) => {
+                const angle = (Math.PI / 2) + (i * angleStep); // Start top
+                const r = (val / 100) * radius;
+                const x = center + Math.cos(angle) * r; // Note: cos/sin swap for orientation
+                const y = center - Math.sin(angle) * r;
+                return `${x},${y}`;
+            }).join(" ");
 
-        const Typewriter = ({ text, speed = 20, delay = 0, className = "" }) => {
+            const gridLevels = [0.2, 0.4, 0.6, 0.8, 1];
+
+            return (
+                <svg width={size} height={size} className="overflow-visible">
+                    {/* Grid */}
+                    {gridLevels.map((level, idx) => (
+                         <polygon 
+                            key={idx}
+                            points={Array.from({length: 5}).map((_, i) => {
+                                const angle = (Math.PI / 2) + (i * angleStep);
+                                const r = level * radius;
+                                return `${center + Math.cos(angle) * r},${center - Math.sin(angle) * r}`;
+                            }).join(" ")}
+                            fill="none"
+                            stroke="#3f3f46"
+                            strokeWidth="1"
+                            strokeOpacity="0.5"
+                        />
+                    ))}
+                    {/* Data */}
+                    <polygon points={points} fill={color} fillOpacity="0.2" stroke={color} strokeWidth="2" />
+                    {/* Labels */}
+                    {data.map((_, i) => {
+                         const angle = (Math.PI / 2) + (i * angleStep);
+                         const x = center + Math.cos(angle) * (radius + 15);
+                         const y = center - Math.sin(angle) * (radius + 15);
+                         return <circle key={i} cx={x} cy={y} r="2" fill="#71717a" />
+                    })}
+                </svg>
+            );
+        };
+
+        const AreaChart = ({ data, color = "#b91c1c", height = 60, width = "100%" }) => {
+            const max = Math.max(...data);
+            const min = Math.min(...data);
+            const range = max - min || 1;
+            
+            const points = data.map((d, i) => {
+                const x = (i / (data.length - 1)) * 100;
+                const y = 100 - ((d - min) / range) * 100; // Normalized 0-100
+                return `${x},${y}`;
+            }).join(" ");
+
+            return (
+                <div style={{ height, width }} className="relative border-b border-l border-zinc-800">
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id={`grad-${color}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={color} stopOpacity="0.5" />
+                                <stop offset="100%" stopColor={color} stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <polyline points={points} fill="none" stroke={color} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                        <polygon points={`0,100 ${points} 100,100`} fill={`url(#grad-${color})`} stroke="none" />
+                    </svg>
+                    {/* Grid lines */}
+                    <div className="absolute inset-0 grid grid-rows-4 pointer-events-none opacity-20">
+                         <div className="border-t border-zinc-500 w-full"></div>
+                         <div className="border-t border-zinc-500 w-full"></div>
+                         <div className="border-t border-zinc-500 w-full"></div>
+                         <div className="border-t border-zinc-500 w-full"></div>
+                    </div>
+                </div>
+            );
+        };
+
+        const StackedBar = ({ segments }) => (
+            <div className="w-full h-4 flex border border-zinc-800 bg-zinc-950">
+                {segments.map((seg, i) => (
+                    <div 
+                        key={i} 
+                        style={{ width: `${seg.val}%` }} 
+                        className={`h-full ${seg.color} border-r border-zinc-950 relative group`}
+                    >
+                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-zinc-900 border border-zinc-700 text-[9px] text-white opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
+                            {seg.label}: {seg.val}%
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+
+        // --- UI COMPONENTS ---
+
+        const Typewriter = ({ text, speed = 10, delay = 0, className = "" }) => {
             const [display, setDisplay] = useState("");
             const [started, setStarted] = useState(false);
 
@@ -191,339 +327,413 @@
             return <span className={className}>{display}</span>;
         };
 
-        const Card = ({ title, children, className = "", alert = false, noPadding = false }) => (
-            <div className={`bg-zinc-950 border ${alert ? 'border-red-900 shadow-[0_0_30px_rgba(185,28,28,0.15)]' : 'border-zinc-800'} tech-border transition-all duration-300 ${className}`}>
+        const Card = ({ title, children, className = "", alert = false, noPadding = false, headerExtra }) => (
+            <div className={`bg-zinc-950/80 backdrop-blur border ${alert ? 'border-red-900 shadow-[0_0_30px_rgba(185,28,28,0.15)]' : 'border-zinc-800'} tech-border transition-all duration-300 ${className} relative overflow-hidden`}>
                 {/* Header */}
-                <div className={`px-5 py-3 border-b border-zinc-800 flex justify-between items-center ${alert ? 'bg-red-950/20' : 'bg-zinc-900/30'}`}>
-                    <h3 className={`font-tech uppercase tracking-[0.2em] text-xs font-bold ${alert ? 'text-red-500' : 'text-zinc-500'}`}>{title}</h3>
-                    <div className="flex gap-1">
-                        <div className={`w-1 h-1 ${alert ? 'bg-red-500 animate-pulse' : 'bg-zinc-700'}`}></div>
-                        <div className="w-1 h-1 bg-zinc-800"></div>
-                        <div className="w-1 h-1 bg-zinc-800"></div>
+                <div className={`px-4 py-2 border-b border-zinc-800 flex justify-between items-center ${alert ? 'bg-red-950/30' : 'bg-zinc-900/30'}`}>
+                    <h3 className={`font-tech uppercase tracking-[0.1em] text-xs font-bold ${alert ? 'text-red-500' : 'text-zinc-500'}`}>{title}</h3>
+                    <div className="flex items-center gap-2">
+                        {headerExtra}
+                        <div className="flex gap-0.5">
+                            <div className={`w-1 h-1 ${alert ? 'bg-red-500 animate-pulse' : 'bg-zinc-700'}`}></div>
+                            <div className="w-1 h-1 bg-zinc-800"></div>
+                            <div className="w-1 h-1 bg-zinc-800"></div>
+                        </div>
                     </div>
                 </div>
                 {/* Content */}
-                <div className={noPadding ? '' : 'p-6'}>
+                <div className={noPadding ? '' : 'p-5'}>
                     {children}
                 </div>
             </div>
         );
 
-        const ProgressBar = ({ value, color = "bg-red-600", label }) => (
-            <div className="space-y-2">
+        const ProgressBar = ({ value, color = "bg-red-600", label, subLabel }) => (
+            <div className="space-y-1">
                 <div className="flex justify-between text-[10px] font-mono uppercase text-zinc-500">
                     <span>{label}</span>
-                    <span>{value}%</span>
+                    <span className={color.replace('bg-', 'text-')}>{value}%</span>
                 </div>
-                <div className="w-full h-1 bg-zinc-900 border border-zinc-800">
-                    <div className={`h-full ${color} transition-all duration-1000`} style={{ width: `${value}%` }}></div>
+                <div className="w-full h-1.5 bg-zinc-900 border border-zinc-800 relative overflow-hidden">
+                    <div className={`h-full ${color} transition-all duration-1000 relative`} style={{ width: `${value}%` }}>
+                         <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white opacity-50"></div>
+                    </div>
                 </div>
+                {subLabel && <div className="text-[9px] text-zinc-600 font-mono text-right">{subLabel}</div>}
             </div>
         );
 
-        const LineGraph = ({ data, color = "#b91c1c" }) => {
-            // Simple SVG line graph generator
-            const height = 60;
-            const width = 200;
-            const max = Math.max(...data);
-            const points = data.map((d, i) => {
-                const x = (i / (data.length - 1)) * width;
-                const y = height - (d / max) * height;
-                return `${x},${y}`;
-            }).join(" ");
-
-            return (
-                <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="overflow-visible">
-                    <polyline fill="none" stroke={color} strokeWidth="1.5" points={points} vectorEffect="non-scaling-stroke" />
-                    {/* Area under curve */}
-                    <polyline fill={color} fillOpacity="0.1" points={`0,${height} ${points} ${width},${height}`} stroke="none" />
-                </svg>
-            );
-        };
-
-        // --- SECTIONS ---
+        // --- TABS ---
 
         const Dashboard = () => (
             <div className="space-y-6 animate-slide-in">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    {/* Main Status - Compliance */}
-                    <div className="lg:col-span-2">
-                        <Card title="Global Imperial Compliance Index" className="h-full">
-                            <div className="flex flex-col h-full justify-between">
-                                <div className="flex items-end gap-6 mb-8">
-                                    <div className="text-7xl font-display font-black text-white tracking-tighter leading-none">
-                                        <Typewriter text="89.4%" speed={30} />
-                                    </div>
-                                    <div className="pb-2 space-y-1">
-                                        <div className="text-xs font-mono text-green-500 flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                            SYSTEMS NOMINAL
-                                        </div>
-                                        <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Delta: +0.4% (Weekly)</div>
-                                    </div>
-                                </div>
-                                
-                                {/* Graph Container */}
-                                <div className="h-32 w-full border-l border-b border-zinc-800 relative">
-                                    <div className="absolute inset-0 p-2">
-                                        <LineGraph data={[65, 68, 72, 75, 74, 78, 82, 85, 88, 89.4]} />
-                                    </div>
-                                    {/* Grid Lines */}
-                                    <div className="absolute inset-0 grid grid-rows-4 pointer-events-none">
-                                        <div className="border-t border-zinc-900/50 w-full"></div>
-                                        <div className="border-t border-zinc-900/50 w-full"></div>
-                                        <div className="border-t border-zinc-900/50 w-full"></div>
-                                    </div>
-                                </div>
+                {/* Top Stats Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                        { label: "Global Compliance", val: "89.4%", delta: "+0.4%", color: "text-green-500" },
+                        { label: "Active Operations", val: "1,242", delta: "-12", color: "text-zinc-300" },
+                        { label: "Detention Index", val: "14.2M", delta: "+2.1%", color: "text-red-500" },
+                        { label: "Budget Utilization", val: "94%", delta: "CRITICAL", color: "text-yellow-500" }
+                    ].map((stat, i) => (
+                        <div key={i} className="border border-zinc-800 bg-zinc-950/50 p-4 tech-border">
+                            <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">{stat.label}</div>
+                            <div className="flex justify-between items-end">
+                                <div className="text-2xl font-display text-white">{stat.val}</div>
+                                <div className={`text-xs font-mono ${stat.color}`}>{stat.delta}</div>
                             </div>
-                        </Card>
-                    </div>
-
-                    {/* Alerts */}
-                    <div className="space-y-6">
-                        <Card title="Threat Assessment" alert={true}>
-                            <div className="flex flex-col items-center justify-center py-4 text-center space-y-4">
-                                <Icon name="AlertTriangle" size={48} className="text-red-600 animate-blink" />
-                                <div>
-                                    <div className="text-2xl text-white font-display tracking-widest uppercase">CRITICAL</div>
-                                    <div className="text-red-500/80 text-xs font-mono mt-1 border border-red-900/30 px-2 py-1 bg-red-950/10">SECTOR 7-G (HOK)</div>
-                                </div>
-                                <div className="w-full pt-4 border-t border-red-900/20">
-                                    <div className="text-[10px] font-mono text-zinc-500 flex justify-between mb-1">
-                                        <span>UNREST</span>
-                                        <span className="text-red-500">92%</span>
-                                    </div>
-                                    <div className="w-full h-1 bg-zinc-900">
-                                        <div className="h-full bg-red-600 w-[92%]"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
-                        
-                        <Card title="System Resource Allocation">
-                            <div className="space-y-3 pt-1">
-                                <ProgressBar value={78} label="Surveillance Grid" color="bg-zinc-400" />
-                                <ProgressBar value={45} label="Data Processing" color="bg-zinc-500" />
-                                <ProgressBar value={91} label="Hok Uplink" color="bg-red-600" />
-                            </div>
-                        </Card>
-                    </div>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Scrolling Intel */}
-                <div className="w-full bg-zinc-950 border-y border-zinc-800 py-2 overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black z-10 pointer-events-none"></div>
-                    <div className="whitespace-nowrap animate-[marquee_30s_linear_infinite] text-xs font-mono text-zinc-500 uppercase tracking-widest flex gap-8">
-                        <span>+++ PRIORITY ALERT: ENCRYPTED BURST TRANSMISSION DETECTED IN SECTOR 4 +++</span>
-                        <span>+++ ISB DIRECTIVE 994: REPORTING SUSPICIOUS ACTIVITY IS MANDATORY +++</span>
-                        <span>+++ PRIVACY IS A LUXURY THE EMPIRE CANNOT AFFORD +++</span>
-                        <span>+++ GRAND MOFF KESSLER HAS DENIED REQUEST FOR ADDITIONAL GARRISON SUPPORT +++</span>
-                        <span>+++ ORDER IS MERCY +++</span>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main Graph */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card title="Sector Stability Analysis // 12-Month Trend" className="h-64">
+                            <div className="h-full flex flex-col justify-between pb-4">
+                                <div className="flex gap-4 mb-2">
+                                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
+                                        <div className="w-2 h-2 bg-red-600"></div> Mid Rim (Unrest)
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
+                                        <div className="w-2 h-2 bg-zinc-600"></div> Core Worlds (Stable)
+                                    </div>
+                                </div>
+                                <div className="relative flex-1">
+                                    <AreaChart data={[65, 62, 58, 55, 60, 52, 48, 45, 42, 40, 38, 35]} color="#b91c1c" height="100%" />
+                                </div>
+                            </div>
+                        </Card>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <Card title="System Resource Allocation" noPadding={true}>
+                                <div className="p-4 space-y-4">
+                                    <div>
+                                        <div className="text-[10px] text-zinc-500 font-mono mb-2">Processing Power</div>
+                                        <StackedBar segments={[
+                                            { val: 45, color: "bg-red-900", label: "Panopticon" },
+                                            { val: 30, color: "bg-zinc-700", label: "Surveillance" },
+                                            { val: 25, color: "bg-zinc-900", label: "Admin" }
+                                        ]} />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-zinc-500 font-mono mb-2">Budget Distribution</div>
+                                        <StackedBar segments={[
+                                            { val: 60, color: "bg-zinc-800", label: "Personnel" },
+                                            { val: 20, color: "bg-red-800", label: "R&D" },
+                                            { val: 20, color: "bg-zinc-600", label: "Ops" }
+                                        ]} />
+                                    </div>
+                                </div>
+                            </Card>
+                            
+                            <Card title="Priority Alerts">
+                                <div className="space-y-3">
+                                    {[
+                                        { code: "CRITICAL", msg: "Hok Mining Guild Strike Imminent", time: "00:04" },
+                                        { code: "WARNING", msg: "Kessel Sector Containment Breach", time: "02:15" },
+                                        { code: "NOTICE", msg: "COMPNOR Budget Review Scheduled", time: "06:00" }
+                                    ].map((alert, i) => (
+                                        <div key={i} className="flex gap-3 items-start border-l-2 border-red-900/50 pl-2">
+                                            <div className="text-[9px] font-mono text-zinc-500 whitespace-nowrap pt-0.5">{alert.time}</div>
+                                            <div>
+                                                <div className={`text-[10px] font-bold ${i === 0 ? 'text-red-500 animate-pulse' : 'text-zinc-400'}`}>{alert.code}</div>
+                                                <div className="text-[10px] text-zinc-500 leading-tight">{alert.msg}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Side Feed */}
+                    <div className="space-y-6">
+                        <Card title="Live Intel Feed" className="h-full flex flex-col" noPadding={true}>
+                             <div className="p-2 bg-zinc-900/50 border-b border-zinc-800 flex justify-between text-[10px] font-mono text-zinc-500 uppercase">
+                                <span>Source</span>
+                                <span>Vector</span>
+                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scroll h-[400px]">
+                                {FEED_DATA.map((item, i) => (
+                                    <div key={i} className="p-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors group">
+                                        <div className="flex justify-between mb-1">
+                                            <span className="font-mono text-[10px] text-zinc-400">{item.id}</span>
+                                            <span className={`font-mono text-[10px] font-bold ${item.risk > 50 ? 'text-red-500' : 'text-green-500'}`}>RISK: {item.risk}</span>
+                                        </div>
+                                        <p className="text-[11px] font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors">{item.msg}</p>
+                                    </div>
+                                ))}
+                            </div>
+                             <div className="p-2 border-t border-zinc-800 bg-zinc-900/30 text-[9px] font-mono text-zinc-600 text-center uppercase">
+                                Ingesting 14TB/sec
+                            </div>
+                        </Card>
                     </div>
                 </div>
             </div>
         );
 
         const Panopticon = () => (
-            <div className="space-y-8 animate-slide-in">
-                <div className="flex justify-between items-end border-b-2 border-red-900 pb-6">
-                    <div>
-                        <h2 className="text-4xl font-display font-black text-white tracking-wider uppercase mb-2">Project Panopticon</h2>
-                        <div className="flex items-center gap-3">
-                            <span className="bg-red-600 text-black text-xs font-bold px-2 py-0.5 font-mono">CAT-10 CLEARANCE</span>
-                            <span className="text-red-500 font-mono text-xs tracking-widest uppercase">The Invisible Prison</span>
+            <div className="space-y-6 animate-slide-in">
+                {/* Header */}
+                <div className="border border-red-900/30 bg-red-950/10 p-6 flex flex-col md:flex-row justify-between items-end tech-border">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-3xl font-display text-white tracking-widest uppercase">{HOK_INITIATIVE.name}</h2>
+                            <span className="px-2 py-0.5 border border-red-500 text-red-500 text-[10px] font-mono uppercase">Category 10 Clearance</span>
                         </div>
+                        <p className="font-mono text-xs text-red-400 max-w-2xl">{HOK_INITIATIVE.formalName}</p>
+                        <p className="font-mono text-[10px] text-zinc-500">OBJECTIVE: "Systematic Inevitability. Make resistance psychologically impossible."</p>
                     </div>
-                    <div className="text-right hidden md:block">
-                        <div className="text-[10px] font-mono text-zinc-500">BUDGET ALLOCATION</div>
-                        <div className="text-xl font-mono text-white">10,000,000,000 CR</div>
-                        <div className="text-[10px] font-mono text-zinc-600 uppercase">(Hidden via COMPNOR Discretionary)</div>
+                    <div className="text-right mt-4 md:mt-0">
+                        <div className="text-[10px] font-mono text-zinc-500 uppercase">Total Budget Allocation</div>
+                        <div className="text-2xl font-mono text-white tracking-tighter">10,000,000,000 <span className="text-sm text-zinc-600">CR</span></div>
+                        <div className="text-[10px] font-mono text-red-500 uppercase mt-1">Status: {HOK_INITIATIVE.status}</div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Phases Timeline */}
-                    <div className="lg:col-span-8 space-y-4">
-                        {PROJECT_PHASES.map((phase) => (
-                            <div key={phase.id} className={`border p-6 flex flex-col md:flex-row gap-6 transition-all ${phase.status === 'ACTIVE' ? 'bg-zinc-900/20 border-red-900/50' : 'bg-zinc-950/50 border-zinc-800 opacity-60'}`}>
-                                <div className="md:w-1/4">
-                                    <div className="text-4xl font-display font-black text-zinc-800 absolute select-none pointer-events-none opacity-50 -mt-2">{phase.id}</div>
-                                    <div className={`font-bold font-mono text-lg relative z-10 ${phase.status === 'ACTIVE' ? 'text-red-500' : 'text-zinc-500'}`}>{phase.title}</div>
-                                    <div className="text-[10px] font-mono border border-zinc-800 inline-block px-2 mt-2">{phase.status}</div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Phases */}
+                    <div className="lg:col-span-2 space-y-4">
+                        <h3 className="text-sm font-display text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2">Implementation Timeline</h3>
+                        {PHASES.map((phase) => (
+                            <div key={phase.id} className={`group border p-4 flex gap-4 transition-all relative overflow-hidden ${phase.status === 'ACTIVE' ? 'bg-zinc-900/40 border-red-900/60' : 'bg-zinc-950/30 border-zinc-800/60 opacity-60'}`}>
+                                <div className="flex flex-col items-center justify-center w-12 border-r border-zinc-800 pr-4">
+                                    <span className="text-xs font-mono text-zinc-600">PHASE</span>
+                                    <span className={`text-xl font-display font-bold ${phase.status === 'ACTIVE' ? 'text-red-500' : 'text-zinc-500'}`}>{phase.id}</span>
                                 </div>
-                                <div className="md:w-3/4 space-y-3">
-                                    <p className="text-sm font-mono text-zinc-300 leading-relaxed whitespace-pre-wrap">{phase.desc}</p>
-                                    {phase.status === 'ACTIVE' && <ProgressBar value={phase.progress} label="Implementation Status" />}
+                                <div className="flex-1 space-y-2 relative z-10">
+                                    <div className="flex justify-between items-start">
+                                        <h4 className={`font-bold font-mono text-sm ${phase.status === 'ACTIVE' ? 'text-white' : 'text-zinc-500'}`}>{phase.title}</h4>
+                                        <span className="text-[10px] font-mono bg-zinc-900 px-2 py-0.5 border border-zinc-800 text-zinc-500">M {phase.months}</span>
+                                    </div>
+                                    <p className="text-xs font-mono text-zinc-400">{phase.desc}</p>
+                                    {phase.status === 'ACTIVE' && <ProgressBar value={phase.progress} label="Completion" />}
                                 </div>
+                                {phase.status === 'ACTIVE' && <div className="absolute top-0 right-0 w-32 h-32 bg-red-900/10 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none"></div>}
                             </div>
                         ))}
                     </div>
 
-                    {/* Live Feed */}
-                    <div className="lg:col-span-4">
-                        <Card title="Citizen Analysis Feed" className="h-full flex flex-col" noPadding={true}>
-                            <div className="p-2 bg-zinc-900/50 border-b border-zinc-800 flex justify-between text-[10px] font-mono text-zinc-500 uppercase">
-                                <span>ID</span>
-                                <span>Trigger</span>
-                                <span>Risk</span>
-                            </div>
-                            <div className="flex-1 overflow-y-auto custom-scroll h-[400px]">
-                                {FEED_DATA.map((item, i) => (
-                                    <div key={i} className="p-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors group">
-                                        <div className="flex justify-between mb-1">
-                                            <span className="font-mono text-xs text-zinc-300">{item.id}</span>
-                                            <span className={`font-mono text-xs font-bold ${item.risk > 80 ? 'text-red-500' : item.risk > 50 ? 'text-yellow-500' : 'text-green-500'}`}>{item.risk}%</span>
+                    {/* Architecture */}
+                    <div className="space-y-6">
+                         <Card title="System Architecture">
+                            <div className="space-y-6 relative">
+                                {/* Lines connecting layers */}
+                                <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-zinc-800"></div>
+
+                                {[
+                                    { title: "Layer 1: Foundation", sub: "Data Collection", detail: "Comms, Finance, Medical, Transport", icon: "Database" },
+                                    { title: "Layer 2: Analysis", sub: "Algorithmic Processing", detail: "Behavioral Patterns, Anomaly Detection", icon: "Cpu" },
+                                    { title: "Layer 3: Intervention", sub: "Graduated Pressure", detail: "Economic Sanctions, Social Isolation, Arrest", icon: "Activity" }
+                                ].map((layer, i) => (
+                                    <div key={i} className="relative pl-8">
+                                        <div className="absolute left-[13px] top-1/2 -translate-y-1/2 w-2 h-2 bg-zinc-900 border border-zinc-500 rounded-full z-10"></div>
+                                        <div className="bg-zinc-900/30 border border-zinc-800 p-3 hover:border-red-900/50 transition-colors">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <div className="text-xs font-bold text-white font-mono">{layer.title}</div>
+                                                <Icon name={layer.icon} size={14} className="text-zinc-600" />
+                                            </div>
+                                            <div className="text-[10px] text-red-400 font-mono uppercase mb-2">{layer.sub}</div>
+                                            <div className="text-[10px] text-zinc-500 leading-tight">{layer.detail}</div>
                                         </div>
-                                        <p className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-400 truncate">{item.msg}</p>
                                     </div>
                                 ))}
                             </div>
-                            <div className="p-2 border-t border-zinc-800 bg-zinc-900/30 text-[10px] font-mono text-zinc-600 text-center">
-                                PROCESSING {Math.floor(Math.random() * 1000) + 18000} VECTORS / SEC
-                            </div>
-                        </Card>
+                         </Card>
                     </div>
                 </div>
-
-                {/* Philosophy */}
-                <Card title="The Physician's Logic">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <div className="text-xs font-mono uppercase text-zinc-500 mb-2">Core Doctrine</div>
-                            <p className="text-sm font-mono text-zinc-300 leading-relaxed italic border-l-2 border-red-900 pl-4">
-                                "We do not wait for the cancer to metastasize. We identify risk factors and intervene early. Detention is not punishment; it is treatment for a societal illness."
-                            </p>
-                        </div>
-                        <div>
-                            <div className="text-xs font-mono uppercase text-zinc-500 mb-2">The False Positive Strategic Value</div>
-                            <p className="text-sm font-mono text-zinc-300 leading-relaxed border-l-2 border-zinc-700 pl-4">
-                                "If only the guilty are punished, the innocent feel safe to deviate. Random or broad targeting creates generalized uncertainty. A population that polices itself out of fear of bureaucratic error is more stable than one that only fears justice."
-                            </p>
-                        </div>
-                    </div>
-                </Card>
             </div>
         );
 
         const TargetHok = () => (
             <div className="space-y-6 animate-slide-in">
-                <div className="flex justify-between items-end border-b border-zinc-800 pb-4">
-                    <div>
-                        <h2 className="text-3xl font-display text-white tracking-[0.2em] uppercase">Target: Hok</h2>
-                        <p className="text-zinc-500 font-mono text-xs tracking-widest mt-1">MID RIM // OVERSECTOR FOUR // 18.2M POPULATION</p>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-red-500 font-bold font-mono border border-red-500 px-2 py-1 text-xs">THREAT LEVEL: RISING</div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1 space-y-6">
-                        {/* Planet Viz */}
-                        <div className="aspect-square bg-zinc-950 border border-zinc-800 flex items-center justify-center relative overflow-hidden group tech-border">
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(50,50,50,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(50,50,50,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
-                            <div className="w-48 h-48 rounded-full bg-zinc-900 border border-zinc-700 relative shadow-[0_0_50px_rgba(255,255,255,0.02)] flex items-center justify-center">
-                                <div className="w-48 h-48 rounded-full border-t border-zinc-600 absolute animate-[spin_10s_linear_infinite] opacity-20"></div>
-                                <div className="w-40 h-40 rounded-full border-b border-red-900 absolute animate-[spin_15s_linear_infinite_reverse]"></div>
-                                <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-red-500 rounded-full animate-blink"></div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Planet Viz */}
+                    <div className="lg:col-span-4 space-y-6">
+                        <Card title="Planetary Profile" className="h-full flex flex-col items-center justify-center relative overflow-hidden">
+                             {/* Scanlines */}
+                             <div className="scanline"></div>
+                             
+                             <div className="w-48 h-48 rounded-full bg-zinc-900 border border-zinc-700 relative shadow-[0_0_50px_rgba(255,255,255,0.02)] flex items-center justify-center mb-6">
+                                <div className="w-56 h-56 border border-dashed border-zinc-800 rounded-full absolute animate-[spin_60s_linear_infinite]"></div>
+                                <div className="w-48 h-48 rounded-full border-t-2 border-zinc-600 absolute animate-[spin_10s_linear_infinite] opacity-30"></div>
+                                <div className="w-40 h-40 rounded-full border-b-2 border-red-900 absolute animate-[spin_15s_linear_infinite_reverse] opacity-50"></div>
+                                {/* Planet Surface Representation */}
+                                <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-600 overflow-hidden relative shadow-inner">
+                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-50"></div>
+                                    <div className="absolute top-4 left-4 w-8 h-8 bg-black/20 rounded-full blur-md"></div>
+                                </div>
+                                {/* Markers */}
+                                <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-red-500 rounded-full animate-blink shadow-[0_0_10px_red]"></div>
+                                <div className="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-yellow-500 rounded-full animate-blink shadow-[0_0_10px_yellow]"></div>
                             </div>
-                            <div className="absolute bottom-4 left-4 text-[10px] font-mono text-red-500 bg-black/80 px-2 border border-red-900">SECTOR 7-G ACTIVE</div>
-                        </div>
 
-                        <Card title="The Kessler Obstacle" alert={true}>
-                            <div className="text-xs font-mono space-y-4">
-                                <p className="text-zinc-400">Grand Moff Kessler advocates <span className="text-white">"Trust-Based Governance."</span> He blocked previous ISB expansion.</p>
-                                <div className="p-3 border border-red-900/30 bg-red-950/10">
-                                    <div className="uppercase text-[10px] text-red-500 mb-1">Strategy</div>
-                                    <p className="text-zinc-300">Use rising labor unrest in his own sector to prove his philosophy creates chaos. Frame Panopticon as "Infrastructure Security Audit 994".</p>
+                            <div className="w-full space-y-3 px-2">
+                                <div className="flex justify-between border-b border-zinc-800 pb-1">
+                                    <span className="text-[10px] font-mono text-zinc-500">POPULATION</span>
+                                    <span className="text-[10px] font-mono text-white">18.2 MILLION</span>
+                                </div>
+                                <div className="flex justify-between border-b border-zinc-800 pb-1">
+                                    <span className="text-[10px] font-mono text-zinc-500">INDUSTRY</span>
+                                    <span className="text-[10px] font-mono text-white">MINING / MANUFACTURING</span>
+                                </div>
+                                <div className="flex justify-between border-b border-zinc-800 pb-1">
+                                    <span className="text-[10px] font-mono text-zinc-500">UNREST INDEX</span>
+                                    <span className="text-[10px] font-mono text-red-500">HIGH (RISING)</span>
                                 </div>
                             </div>
                         </Card>
                     </div>
 
-                    <div className="lg:col-span-2 space-y-6">
-                        <Card title="Operational Intel">
-                            <div className="prose prose-invert prose-sm font-mono max-w-none text-xs leading-relaxed text-zinc-400">
-                                <p className="mb-4">
-                                    <strong className="text-white block mb-1 uppercase tracking-wider border-b border-zinc-800 pb-1 w-fit">Sector 7-G (Mining)</strong>
-                                    Labor unrest is spiking. Mining guilds are organizing shifts to hide unauthorized meetings. This is the perfect petri dish. We will allow the unrest to grow slightly to justify the surveillance grid, then crush it systematically in Phase II.
-                                </p>
-                                <p className="mb-4">
-                                    <strong className="text-white block mb-1 uppercase tracking-wider border-b border-zinc-800 pb-1 w-fit">Resource Extraction</strong>
-                                    Doonium and Tibanna reserves are critical for fleet maintenance. Disruption cannot exceed 15%. Current disruption: 8%.
-                                </p>
-                            </div>
-                        </Card>
-                        
-                        <Card title="Surveillance Markers" noPadding={true}>
-                             <div className="grid grid-cols-1 divide-y divide-zinc-800">
-                                {[
-                                    { target: "Mining Guild", status: "INFILTRATED", agents: "3 Active", risk: "HIGH" },
-                                    { target: "University", status: "MONITORED", agents: "Audio Only", risk: "MED" },
-                                    { target: "Spaceport", status: "LOCKED DOWN", agents: "Garrison", risk: "LOW" }
-                                ].map((m, i) => (
-                                    <div key={i} className="p-4 flex justify-between items-center text-xs font-mono hover:bg-zinc-900">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-2 h-2 rounded-full ${m.risk === 'HIGH' ? 'bg-red-600' : m.risk === 'MED' ? 'bg-yellow-600' : 'bg-green-600'}`}></div>
-                                            <span className="text-white font-bold">{m.target}</span>
-                                        </div>
-                                        <div className="flex gap-6">
-                                            <span className="text-zinc-500">{m.agents}</span>
-                                            <span className={`px-2 py-0.5 border ${m.status === 'INFILTRATED' ? 'border-green-900 text-green-500' : 'border-red-900 text-red-500'}`}>{m.status}</span>
-                                        </div>
+                    {/* Operational Context */}
+                    <div className="lg:col-span-8 space-y-6">
+                         <Card title="Strategic Context: The Kessler Obstacle" alert={true}>
+                            <div className="flex gap-6 items-start">
+                                <div className="w-16 h-16 bg-zinc-800 flex items-center justify-center shrink-0">
+                                    <span className="font-display font-bold text-2xl text-zinc-600">GK</span>
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-white font-mono text-sm uppercase font-bold">Grand Moff Garrik Kessler <span className="text-xs text-zinc-500 font-normal ml-2">// Reformist Faction</span></h3>
+                                    <p className="text-xs font-mono text-zinc-400 leading-relaxed">
+                                        Advocates for "Trust-Based Governance." Believes heavy-handed security creates resistance. Currently blocking ISB expansion in Oversector 4.
+                                    </p>
+                                    <div className="bg-red-950/20 border border-red-900/30 p-3 mt-2">
+                                        <span className="text-[10px] font-mono text-red-500 uppercase block mb-1">Strategy</span>
+                                        <p className="text-xs font-mono text-zinc-300">
+                                            Use rising labor unrest in Hok's mining sector to prove his philosophy creates chaos. Frame Panopticon as "Infrastructure Security Audit".
+                                            He cannot refuse security upgrades without appearing negligent regarding economic output.
+                                        </p>
                                     </div>
-                                ))}
+                                </div>
+                            </div>
+                         </Card>
+
+                         <Card title="Surveillance Markers: Sector 7-G">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-4">
+                                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Active Threats</div>
+                                    {[
+                                        { target: "Mining Guild Local 442", status: "Infiltrated", detail: "Unauthorized meetings." },
+                                        { target: "University Campus", status: "Monitored", detail: "Ideological drift detected." },
+                                        { target: "Transit Hub Alpha", status: "Secure", detail: "Biometric scanners active." }
+                                    ].map((t, i) => (
+                                        <div key={i} className="flex justify-between items-center p-2 bg-zinc-900/30 border-l-2 border-red-500">
+                                            <div>
+                                                <div className="text-xs font-bold text-white">{t.target}</div>
+                                                <div className="text-[9px] text-zinc-500">{t.detail}</div>
+                                            </div>
+                                            <span className="text-[9px] font-mono bg-zinc-800 px-1 text-zinc-300">{t.status}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Resource Impact</div>
+                                    <div className="space-y-3 pt-2">
+                                        <ProgressBar value={92} label="Doonium Extraction" color="bg-zinc-500" />
+                                        <ProgressBar value={88} label="Tibanna Refining" color="bg-zinc-500" />
+                                        <ProgressBar value={45} label="Labor Compliance" color="bg-red-600" subLabel="CRITICAL DROP" />
+                                    </div>
+                                </div>
                              </div>
-                        </Card>
+                         </Card>
                     </div>
                 </div>
             </div>
         );
 
         const Dossiers = () => (
-            <div className="space-y-6 animate-slide-in">
-                <h2 className="text-2xl font-display text-white tracking-[0.2em] uppercase border-b border-zinc-800 pb-4 mb-6">Personnel & Assets</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                        {
-                            id: "ISB-DIR-III-MARUS", name: "Thane Marus", role: "Project Director", status: "DEPLOYED", loyalty: 94,
-                            details: "42 years old. Pragmatic, intelligent, capable of 'necessary cruelty'. Family used as leverage point. Hesitant about consequences but obeys logic. Personally recruited for Panopticon.",
-                            initial: "TM"
-                        },
-                        {
-                            id: "GM-GARRIK-KESSLER", name: "Garrik Kessler", role: "Grand Moff", status: "SURVEILLANCE", loyalty: 40,
-                            details: "Political adversary. Reformist. Unaware of Panopticon's full scope. Believes Marus is a safety inspector. Vulnerability: Pride in his 'peaceful' sector.",
-                            initial: "GK"
-                        }
-                    ].map((person) => (
-                        <Card key={person.id} className="hover:border-zinc-600 transition-colors" noPadding={true}>
-                            <div className="p-6">
-                                <div className="flex items-start gap-4 mb-6">
-                                    <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center font-display text-2xl text-zinc-600">
-                                        {person.initial}
+            <div className="space-y-8 animate-slide-in">
+                <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+                    <h2 className="text-2xl font-display text-white tracking-widest uppercase">Key Personnel</h2>
+                    <div className="text-[10px] font-mono text-zinc-500">ACCESS LEVEL: DIRECTOR ONLY</div>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    {/* KRASK */}
+                    <Card title="Subject Profile: Self" className="h-full">
+                        <div className="flex flex-col md:flex-row gap-6">
+                            <div className="w-48 shrink-0 flex flex-col gap-4">
+                                <div className="aspect-[3/4] bg-zinc-900 border border-zinc-700 flex flex-col items-center justify-center p-4">
+                                    <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
+                                        <span className="font-display text-3xl text-zinc-500">VK</span>
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="text-lg font-mono font-bold text-white">{person.name}</div>
-                                        <div className="text-xs font-mono text-red-500 uppercase mb-2">{person.role}</div>
-                                        <div className="text-[10px] font-mono text-zinc-500 bg-zinc-900/50 inline-block px-2 py-1">{person.id}</div>
-                                    </div>
-                                    <div className={`text-[10px] px-2 py-1 border ${person.status === 'DEPLOYED' ? 'border-green-900 text-green-500' : 'border-yellow-900 text-yellow-500'}`}>
-                                        {person.status}
+                                    <div className="text-center">
+                                        <div className="text-lg font-display text-white">VALEN KRASK</div>
+                                        <div className="text-[10px] font-mono text-red-500">DIRECTOR // ISB</div>
                                     </div>
                                 </div>
-                                
-                                <div className="space-y-4">
-                                    <div className="bg-black p-3 border border-zinc-800">
-                                        <div className="text-[10px] text-zinc-500 uppercase mb-1">Psych Profile</div>
-                                        <p className="text-xs font-mono text-zinc-400 leading-relaxed whitespace-pre-wrap">{person.details}</p>
-                                    </div>
-                                    <ProgressBar value={person.loyalty} label="Loyalty Index" color={person.loyalty > 80 ? "bg-green-600" : "bg-red-600"} />
+                                <RadarChart data={[95, 100, 20, 90, 85]} size={190} /> {/* Loyalty, Logic, Empathy, Strategy, Authority */}
+                                <div className="text-[9px] font-mono text-zinc-500 text-center flex justify-between px-2">
+                                    <span>EMP</span>
+                                    <span>LOGIC</span>
+                                    <span>LOY</span>
                                 </div>
                             </div>
-                        </Card>
-                    ))}
+                            <div className="flex-1 space-y-4">
+                                <div>
+                                    <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">Psychological Profile</div>
+                                    <p className="text-xs font-mono text-zinc-300 leading-relaxed border-l border-zinc-700 pl-3">
+                                        "The Physician." Approaches security as surgery: painful but necessary. Absolute certainty in moral correctness of authoritarian control. Detached. Clinical. Believes the Republic died from inability to make unpopular decisions.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-zinc-900/50 p-3 border border-zinc-800">
+                                        <div className="text-[9px] text-zinc-500 uppercase">Origin</div>
+                                        <div className="text-xs text-white">Alsakan (Core)</div>
+                                    </div>
+                                    <div className="bg-zinc-900/50 p-3 border border-zinc-800">
+                                        <div className="text-[9px] text-zinc-500 uppercase">Weakness</div>
+                                        <div className="text-xs text-white">Ideological Blindness</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">Notable Quote</div>
+                                    <p className="text-xs font-mono italic text-zinc-400">"I do not hate the rebels. I pity them. They are children smashing the foundations of the house that shelters them."</p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* MARUS */}
+                    <Card title="Operational Asset: Thane Marus" className="h-full">
+                        <div className="flex flex-col md:flex-row gap-6">
+                            <div className="w-48 shrink-0 flex flex-col gap-4">
+                                <div className="aspect-[3/4] bg-zinc-900 border border-zinc-700 flex flex-col items-center justify-center p-4">
+                                    <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
+                                        <span className="font-display text-3xl text-zinc-500">TM</span>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-lg font-display text-white">THANE MARUS</div>
+                                        <div className="text-[10px] font-mono text-yellow-500">DIRECTOR G3 // PROJ LEAD</div>
+                                    </div>
+                                </div>
+                                <RadarChart data={[85, 90, 50, 85, 70]} size={190} /> {/* Loyalty, Logic, Empathy, Strategy, Authority */}
+                            </div>
+                            <div className="flex-1 space-y-4">
+                                <div>
+                                    <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">Assessment</div>
+                                    <p className="text-xs font-mono text-zinc-300 leading-relaxed border-l border-zinc-700 pl-3">
+                                        Intelligent. Pragmatic. Capable of "necessary cruelty" but lacks the fanatical zeal of COMPNOR. Selected for Panopticon because of his flexibility. He questions, but ultimately obeys logic.
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center text-xs font-mono">
+                                        <span className="text-zinc-500">Leverage: Family</span>
+                                        <span className="text-green-500">SECURE</span>
+                                    </div>
+                                    <ProgressBar value={94} label="Obedience Index" color="bg-green-600" />
+                                    <ProgressBar value={40} label="Ideological Zeal" color="bg-yellow-600" />
+                                </div>
+                                <div className="bg-zinc-900 p-3 border border-zinc-800 mt-2">
+                                    <div className="text-[9px] text-zinc-500 uppercase">Recent Interaction</div>
+                                    <p className="text-[10px] font-mono text-zinc-400 mt-1">
+                                        Questioned ethical implications of Panopticon ("sophisticated slavery"). Convinced by the "Freedom through Order" argument. Accepted assignment.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
                 </div>
             </div>
         );
@@ -531,30 +741,55 @@
         const Archives = () => (
             <div className="space-y-6 animate-slide-in">
                 <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
-                    <h2 className="text-2xl font-display text-white tracking-[0.2em] uppercase">Private Archives</h2>
-                    <Icon name="Lock" className="text-red-600" />
+                    <h2 className="text-2xl font-display text-white tracking-widest uppercase">Encrypted Logs</h2>
+                    <Icon name="Lock" className="text-red-600 animate-pulse" />
                 </div>
-                
+
                 <div className="space-y-4">
                     {[
-                        { date: "5 ABY - 05:47", title: "The Ivory Tower", text: "The city transitions from night to day. Coruscant never truly sleeps. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure." },
-                        { date: "5 ABY - 19:30", title: "Marus Selection", text: "Marus accepted. He is not certain, which is good. Zealots make mistakes; pragmatists make progress. He asked about false positives. I told him they are a feature. If only the guilty are punished, the innocent feel safe to deviate." },
-                        { date: "REF: 19 BBY", title: "The Mother Incident", text: "My mother. Lyssa. History teacher. She could not adapt to the New Order. I reviewed her file myself. I recommended her for 'ideological counseling'. Three months re-education. She never spoke to me again. I showed mercy. I chose the minimal intervention necessary. I am a surgeon." },
-                        { date: "5 ABY - 21:15", title: "The Physician's Duty", text: "I do not hate the rebels. I pity them. They are children smashing the foundations of the house that shelters them. When it collapses, they will cry for someone to save them. And we will be there. Order is mercy. Chaos is cruelty." }
+                        { 
+                            id: "LOG-0547-START", 
+                            date: "5 ABY // 05:47", 
+                            title: "Morning Reflection", 
+                            content: "The city transitions from night to day. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure. Order requires vigilance." 
+                        },
+                        { 
+                            id: "MTG-MARUS-01", 
+                            date: "5 ABY // 07:00", 
+                            title: "Meeting: Thane Marus / Panopticon Initiation", 
+                            content: "Marus is skeptical but obedient. I showed him the 'Comprehensive Social Equilibrium Initiative'. He called it ambitious. He asked about the privacy implications. I told him privacy is a luxury the Empire cannot afford. We are building systematic inevitability." 
+                        },
+                        { 
+                            id: "MTG-MARUS-02", 
+                            date: "5 ABY // 07:46", 
+                            title: "The Kessler Strategy", 
+                            content: "Marus identified the risk: Grand Moff Kessler. I explained the strategy. We frame Panopticon as 'Infrastructure Security Audit'. We use the labor unrest on Hok—which Kessler is responsible for—as the pretext. He cannot refuse security upgrades without appearing negligent." 
+                        },
+                        { 
+                            id: "PRSNL-REF", 
+                            date: "19 BBY (ARCHIVED)", 
+                            title: "The Mother Incident", 
+                            content: "Lyssa Krask. History teacher. Couldn't adapt to the New Order. I reviewed her file myself. Recommended 'ideological counseling'. Three months re-education. She never spoke to me again. I showed mercy. I chose the minimal intervention necessary. I am a surgeon." 
+                        }
                     ].map((log, i) => (
-                        <div key={i} className="border border-zinc-800 bg-zinc-950/50 p-6 hover:bg-zinc-900 transition-colors group tech-border">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="text-sm font-mono font-bold text-white group-hover:text-red-500 transition-colors uppercase">{log.title}</h3>
-                                <span className="text-[10px] font-mono text-zinc-600">{log.date}</span>
+                        <div key={i} className="group border border-zinc-800 bg-zinc-950/50 hover:bg-zinc-900 transition-all duration-300 tech-border overflow-hidden">
+                            <div className="p-4 flex flex-col md:flex-row gap-4 md:gap-8">
+                                <div className="md:w-48 shrink-0 border-r border-zinc-800/50 pr-4 flex flex-col justify-center">
+                                    <div className="text-[10px] font-mono text-red-500 font-bold">{log.id}</div>
+                                    <div className="text-[10px] font-mono text-zinc-600">{log.date}</div>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-mono font-bold text-white mb-2 uppercase group-hover:text-red-500 transition-colors">{log.title}</h3>
+                                    <p className="text-xs font-mono text-zinc-400 leading-relaxed font-light">{log.content}</p>
+                                </div>
                             </div>
-                            <p className="text-xs font-mono text-zinc-400 leading-relaxed whitespace-pre-wrap pl-4 border-l border-zinc-800 group-hover:border-red-900 transition-colors">{log.text}</p>
                         </div>
                     ))}
                 </div>
             </div>
         );
 
-        // --- LOGIN SCREEN ---
+        // --- APP SHELL & LOGIN ---
 
         const LoginScreen = ({ onLogin }) => {
             const [step, setStep] = useState(0);
@@ -571,13 +806,14 @@
             };
 
             return (
-                <div className="min-h-screen bg-black flex flex-col items-center justify-center relative">
+                <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
                     <div className="grid-bg absolute inset-0 opacity-30 pointer-events-none"></div>
+                    <div className="scanline"></div>
                     
                     <div className="relative z-10 flex flex-col items-center">
                         <div className="mb-16 text-center">
-                            <h1 className="text-7xl font-display font-black text-white tracking-[0.2em] mb-2 opacity-90">ISB</h1>
-                            <div className="text-[10px] font-mono text-zinc-600 tracking-[0.5em] uppercase">Central Administrative Node</div>
+                            <h1 className="text-8xl font-display font-black text-white tracking-[0.2em] mb-2 opacity-90 glitch-text cursor-default">ISB</h1>
+                            <div className="text-[10px] font-mono text-zinc-600 tracking-[0.5em] uppercase">Central Administrative Node // Coruscant</div>
                         </div>
 
                         {/* Lock Mechanism */}
@@ -587,7 +823,6 @@
                         >
                             {/* Inner Lock */}
                             <div className={`w-48 h-48 rounded-full border border-dashed border-zinc-700 flex items-center justify-center transition-transform duration-500 ${step === 2 ? 'rotate-90' : ''}`}>
-                                {/* Lock Detailing */}
                                 <div className="absolute w-full h-1 bg-zinc-900/0 group-hover:bg-zinc-900/50 top-1/2 -translate-y-1/2"></div>
                                 <div className="absolute h-full w-1 bg-zinc-900/0 group-hover:bg-zinc-900/50 left-1/2 -translate-x-1/2"></div>
                                 <div className={`w-32 h-32 rounded-full border border-zinc-800 flex items-center justify-center ${step === 3 ? 'bg-red-900/10 animate-pulse' : step === 4 ? 'bg-green-900/10' : 'bg-black'}`}>
@@ -604,7 +839,7 @@
                             </div>
 
                             {/* Status Text */}
-                            <div className="absolute -bottom-20 text-center">
+                            <div className="absolute -bottom-24 text-center w-full">
                                 {step === 0 && <div className="text-xs font-mono text-zinc-500 tracking-widest animate-pulse">[ INSERT S-COMP ]</div>}
                                 {step === 3 && <div className="text-xs font-mono text-red-500 tracking-widest">VERIFYING BIOMETRICS...</div>}
                                 {step === 4 && <div className="text-xs font-mono text-green-500 tracking-widest">IDENTITY CONFIRMED</div>}
@@ -615,8 +850,6 @@
             );
         };
 
-        // --- APP SHELL ---
-
         const App = () => {
             const [auth, setAuth] = useState(false);
             const [booting, setBooting] = useState(false);
@@ -625,7 +858,7 @@
             const handleLogin = () => {
                 setAuth(true);
                 setBooting(true);
-                setTimeout(() => setBooting(false), 2500);
+                setTimeout(() => setBooting(false), 3000);
             };
 
             if (!auth) return <LoginScreen onLogin={handleLogin} />;
@@ -636,12 +869,17 @@
                     <Typewriter text="> DECRYPTING PANOPTICON VOLUMES..." speed={5} delay={400} className="block" />
                     <Typewriter text="> LOADING USER PROFILE: KRASK..." speed={5} delay={800} className="block" />
                     <Typewriter text="> ESTABLISHING UPLINK: HOK..." speed={5} delay={1200} className="block" />
-                    <Typewriter text="> SYSTEM READY." speed={10} delay={1800} className="block text-white mt-4" />
+                    <Typewriter text="> AUTHENTICATING CLEARANCE LEVEL 10..." speed={5} delay={1800} className="block" />
+                    <Typewriter text="> SYSTEM READY." speed={10} delay={2400} className="block text-white mt-4" />
                 </div>
             );
 
             return (
-                <div className="flex h-screen bg-black">
+                <div className="flex h-screen bg-black text-zinc-300 font-sans overflow-hidden relative">
+                    {/* Background Noise */}
+                    <div className="grid-bg absolute inset-0 opacity-20 pointer-events-none"></div>
+                    <div className="scanline"></div>
+
                     {/* Sidebar */}
                     <aside className="w-72 bg-zinc-950 border-r border-zinc-800 hidden md:flex flex-col relative z-20">
                         <div className="p-8 border-b border-zinc-800">
@@ -677,14 +915,14 @@
                             ))}
                         </nav>
 
-                        <div className="p-6 border-t border-zinc-800">
+                        <div className="p-6 border-t border-zinc-800 bg-zinc-900/20">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center">
                                     <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></div>
                                 </div>
                                 <div>
                                     <div className="text-white font-mono text-xs font-bold">DIR. KRASK</div>
-                                    <div className="text-[10px] text-zinc-600 font-mono">ID: ISB-ALPHA</div>
+                                    <div className="text-[10px] text-zinc-600 font-mono">ID: ISB-ALPHA-1</div>
                                 </div>
                             </div>
                             <button onClick={() => setAuth(false)} className="w-full border border-zinc-800 text-[10px] font-mono text-zinc-500 hover:text-red-500 hover:border-red-900 py-2 transition-colors uppercase tracking-widest">
@@ -694,25 +932,24 @@
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 flex flex-col relative overflow-hidden bg-black">
-                        <div className="grid-bg absolute inset-0 opacity-20 pointer-events-none"></div>
+                    <main className="flex-1 flex flex-col relative overflow-hidden bg-black/80 backdrop-blur-sm">
                         
                         {/* Top Bar */}
-                        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-8 bg-zinc-950/80 backdrop-blur-sm z-10">
+                        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-8 bg-zinc-950/80 backdrop-blur-md z-10">
                             <div className="font-mono text-xs text-red-600 tracking-[0.2em] flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 bg-red-600 animate-pulse"></div>
                                 SECURE UPLINK ESTABLISHED
                             </div>
                             <div className="hidden md:flex gap-8 text-[10px] font-mono text-zinc-600 uppercase">
-                                <span>Encryption: AES-ROT-256</span>
+                                <span className="flex items-center gap-2"><div className="w-1 h-1 bg-green-500 rounded-full"></div> Encryption: AES-ROT-256</span>
                                 <span>Bandwidth: 94%</span>
-                                <span>Node: Coruscant-Prime</span>
+                                <span>Node: Coruscant-Tower-225</span>
                             </div>
                         </header>
 
                         {/* Content Area */}
-                        <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scroll">
-                            <div className="max-w-7xl mx-auto">
+                        <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scroll relative">
+                            <div className="max-w-7xl mx-auto pb-10">
                                 {tab === 'dashboard' && <Dashboard />}
                                 {tab === 'panopticon' && <Panopticon />}
                                 {tab === 'hok' && <TargetHok />}

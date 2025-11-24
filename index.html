@@ -2,58 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISB // CENTRAL // KRASK // SECURE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ISB // DIRECTORATE // KRASK // SECURE</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Fonts -->
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;300;400;700;800&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Teko:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;300;400;700&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap');
-        
         :root {
-            --imperial-red: #b91c1c;
-            --imperial-red-dim: #7f1d1d;
-            --imperial-dark: #050505;
-            --imperial-panel: #09090b;
-            --text-main: #e4e4e7;
-            --text-dim: #71717a;
+            --imp-white: #e5e5e5;
+            --imp-gray: #4a4a4a;
+            --imp-dark: #0a0a0a;
+            --imp-black: #020202;
+            --imp-red: #bb1e1e;
+            --imp-red-dim: #5c0a0a;
+            --imp-amber: #ffae00;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000;
-            color: var(--text-main);
+            background-color: var(--imp-black);
+            color: var(--imp-white);
+            font-family: 'JetBrains Mono', monospace;
             overflow: hidden;
-            cursor: default;
+            margin: 0;
+            padding: 0;
+            cursor: crosshair;
         }
 
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        /* --- TYPOGRAPHY --- */
+        .font-header { font-family: 'Teko', sans-serif; letter-spacing: 0.15em; }
         .font-tech { font-family: 'Share Tech Mono', monospace; }
-        .font-display { font-family: 'Orbitron', sans-serif; }
+        .font-mono-bold { font-family: 'JetBrains Mono', monospace; font-weight: 800; }
 
-        /* Background & Scanlines */
-        .grid-bg {
-            background-size: 40px 40px;
-            background-image:
-                linear-gradient(to right, rgba(39, 39, 42, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(39, 39, 42, 0.05) 1px, transparent 1px);
+        /* --- CRT EFFECTS --- */
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 50;
         }
 
         .scanline {
             width: 100%;
             height: 100px;
-            z-index: 10;
-            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 0, 0, 0.02) 50%, rgba(0,0,0,0) 100%);
+            z-index: 51;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(0,0,0,0) 100%);
             opacity: 0.1;
             position: absolute;
             bottom: 100%;
-            animation: scanline 10s linear infinite;
+            animation: scanline 8s linear infinite;
             pointer-events: none;
         }
 
@@ -62,862 +73,841 @@
             100% { bottom: -100px; }
         }
 
-        /* Animations */
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; border-left: 1px solid #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--imp-red); }
 
-        @keyframes slide-in { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .animate-slide-in { animation: slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .animate-blink { animation: blink 2s infinite; }
-
-        @keyframes glitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
+        /* --- UTILITIES --- */
+        .text-glow { text-shadow: 0 0 5px rgba(229, 229, 229, 0.3); }
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(50, 50, 50, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(50, 50, 50, 0.1) 1px, transparent 1px);
         }
-        .glitch-text:hover { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; color: var(--imperial-red); }
 
-        /* Custom Scrollbar */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #09090b; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #3f3f46; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--imperial-red); }
+        /* Animations */
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .ticker-content { animation: ticker 40s linear infinite; }
+        
+        .cursor-blink::after { content: '█'; animation: blink 1s step-end infinite; color: var(--imp-red); margin-left: 4px; }
+        @keyframes blink { 50% { opacity: 0; } }
 
-        /* Tech Borders */
-        .tech-border { position: relative; border: 1px solid rgba(63, 63, 70, 0.3); }
-        .tech-border::before { content: ''; position: absolute; top: -1px; left: -1px; width: 6px; height: 6px; border-top: 1px solid #71717a; border-left: 1px solid #71717a; transition: all 0.3s ease; }
-        .tech-border::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 6px; height: 6px; border-bottom: 1px solid #71717a; border-right: 1px solid #71717a; transition: all 0.3s ease; }
-        .tech-border:hover { border-color: rgba(185, 28, 28, 0.4); }
-        .tech-border:hover::before, .tech-border:hover::after { width: 100%; height: 100%; border-color: var(--imperial-red); opacity: 0.5; }
-
-        /* Utility */
-        .text-xxs { font-size: 0.65rem; line-height: 1rem; }
+        /* Custom Range Slider */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--imp-white); cursor: pointer; margin-top: -6px; border: 1px solid #000; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #333; }
+        input[type=range]:focus { outline: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- ICONS (SVG) ---
-        const Icon = ({ name, size = 18, className = "" }) => {
-            const icons = {
-                Shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
-                Lock: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
-                Eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
-                FileText: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></>,
-                Users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-                Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
-                Globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
-                Terminal: <><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>,
-                AlertTriangle: <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
-                Database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
-                Cpu: <><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></>,
-                Crosshair: <><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></>
-            };
-
-            return (
-                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                    {icons[name] || icons.Terminal}
-                </svg>
-            );
+        // ==========================================
+        // DATA & LORE
+        // ==========================================
+        
+        const LORE = {
+            director: "DIRECTOR VALEN KRASK",
+            id: "ISB-CEN-001",
+            clearance: "CLE-10 // IMPERIAL EYES ONLY",
+            location: "ISB CENTRAL TOWER // CORUSCANT",
+            date: "5 ABY // CYCLE 144",
+            project: "PANOPTICON",
+            target: "HOK (OVERSECTOR 4)",
+            quote: "ORDER IS MERCY. CHAOS IS CRUELTY."
         };
 
-        // --- LORE DATA ---
-        const KRASK_PROFILE = {
-            name: "Valen Krask",
-            rank: "Director",
-            born: "50 BBY, Alsakan",
-            aliases: ["The Physician", "The Reasonable Man", "The Surgeon"],
-            traits: ["Clinical", "Austere", "Systematic", "Ideologically Absolute"],
-            quote: "Order is mercy. Chaos is cruelty. Everything else is sentiment."
-        };
-
-        const PROJECT_PANOPTICON = {
-            name: "Project Panopticon",
-            formalName: "Comprehensive Social Equilibrium Initiative",
-            objective: "Systematic Inevitability",
-            location: "Hok (Mid Rim / Oversector 4)",
-            targetPop: "18.2 Million",
-            governor: "Grand Moff Garrik Kessler (Reformist)",
-            budget: "10,000,000,000 CR (COMPNOR Discretionary)",
-            status: "PHASE I: FOUNDATION",
-            clearance: "Category Ten: Imperial Eyes Only"
-        };
-
-        const PHASES = [
-            { id: "I", title: "FOUNDATION", months: "1-3", status: "ACTIVE", progress: 85, desc: "Recruitment, infrastructure audit, data integration framework. Establishing the 'eyes'." },
-            { id: "II", title: "INFRASTRUCTURE", months: "4-6", status: "PENDING", progress: 0, desc: "Physical deployment of surveillance web. 70% coverage target. Analytical core activation." },
-            { id: "III", title: "OPERATIONS", months: "7-12", status: "LOCKED", progress: 0, desc: "Predictive intervention active. Graduated pressure protocols. Pre-crime intervention." },
-            { id: "IV", title: "CONDITIONING", months: "13-24", status: "LOCKED", progress: 0, desc: "Full behavioral modification. Systemic inevitability. Rebellion becomes psychologically impossible." }
+        const SECTORS = [
+            { id: 'MINING', name: 'MINING DISTRICT 7G', x: 20, y: 30, risk: 92, output: 45, detail: "Labor Strike Imminent. Guild 442 Activity." },
+            { id: 'IND', name: 'INDUSTRIAL CORE', x: 45, y: 50, risk: 60, output: 95, detail: "Refinery output nominal. Shift quotas increased." },
+            { id: 'GOV', name: 'ADMINISTRATIVE ZONE', x: 70, y: 30, risk: 15, output: 100, detail: "Grand Moff Kessler's residence. High security." },
+            { id: 'PORT', name: 'SPACEPORT ALPHA', x: 60, y: 70, risk: 75, output: 80, detail: "Smuggling vectors identified. Cargo checks failing." },
+            { id: 'EDU', name: 'UNIVERSITY DISTRICT', x: 30, y: 60, risk: 55, output: 20, detail: "Ideological drift detected. History Dept. flagged." }
         ];
 
-        // --- COMPONENTS ---
+        // ==========================================
+        // UI COMPONENTS
+        // ==========================================
 
-        const Card = ({ title, children, className = "", alert = false, noPadding = false, headerExtra }) => (
-            <div className={`bg-zinc-950 border ${alert ? 'border-red-900/60 shadow-[0_0_15px_rgba(185,28,28,0.1)]' : 'border-zinc-800'} tech-border transition-all duration-300 ${className} relative overflow-hidden flex flex-col`}>
-                <div className={`px-4 py-2 border-b border-zinc-800 flex justify-between items-center shrink-0 ${alert ? 'bg-red-950/20' : 'bg-zinc-900/30'}`}>
-                    <h3 className={`font-tech uppercase tracking-[0.1em] text-xs font-bold ${alert ? 'text-red-500' : 'text-zinc-500'}`}>{title}</h3>
-                    <div className="flex items-center gap-2">
-                        {headerExtra}
-                        <div className="flex gap-0.5">
-                            <div className={`w-1 h-1 ${alert ? 'bg-red-500 animate-pulse' : 'bg-zinc-700'}`}></div>
-                            <div className="w-1 h-1 bg-zinc-800"></div>
-                            <div className="w-1 h-1 bg-zinc-800"></div>
+        const Box = ({ children, className = "", title, alert = false, fit = false, scroll = false, glowing = false, noBorder = false }) => (
+            <div className={`relative bg-zinc-950/90 ${noBorder ? '' : 'border'} ${alert ? 'border-red-900 shadow-[0_0_10px_rgba(185,28,28,0.1)]' : 'border-zinc-800'} ${className} flex flex-col backdrop-blur-sm transition-colors duration-500`}>
+                {!noBorder && (
+                    <>
+                        <div className={`absolute -top-[1px] -left-[1px] w-2 h-2 border-t-2 border-l-2 ${alert ? 'border-red-600' : 'border-zinc-500'}`}></div>
+                        <div className={`absolute -bottom-[1px] -right-[1px] w-2 h-2 border-b-2 border-r-2 ${alert ? 'border-red-600' : 'border-zinc-500'}`}></div>
+                    </>
+                )}
+                
+                {title && (
+                    <div className={`flex items-center justify-between px-3 py-1.5 border-b ${alert ? 'border-red-900 bg-red-950/20' : 'border-zinc-800 bg-zinc-900/40'} shrink-0`}>
+                        <span className={`text-[10px] tracking-[0.2em] font-header uppercase ${alert ? 'text-red-500' : 'text-zinc-400'}`}>
+                            {title}
+                        </span>
+                        <div className="flex gap-1">
+                            <div className={`w-1 h-1 ${alert ? 'bg-red-500 animate-pulse' : 'bg-zinc-600'}`}></div>
                         </div>
                     </div>
-                </div>
-                <div className={`${noPadding ? '' : 'p-5'} flex-1 relative`}>
+                )}
+                
+                <div className={`relative ${fit ? '' : 'p-4 flex-1'} ${scroll ? 'overflow-y-auto custom-scroll' : 'overflow-hidden'}`}>
                     {children}
                 </div>
             </div>
         );
 
-        const ProgressBar = ({ value, color = "bg-red-600", label, subLabel, height = "h-1.5" }) => (
-            <div className="space-y-1">
-                <div className="flex justify-between text-[10px] font-mono uppercase text-zinc-500">
-                    <span>{label}</span>
-                    <span className={color.replace('bg-', 'text-')}>{value}%</span>
-                </div>
-                <div className={`w-full ${height} bg-zinc-900 border border-zinc-800 relative overflow-hidden`}>
-                    <div className={`h-full ${color} transition-all duration-1000 relative`} style={{ width: `${value}%` }}>
-                        <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white opacity-50"></div>
-                    </div>
-                    {/* Grid overlay for bar */}
-                    <div className="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-20"></div>
-                </div>
-                {subLabel && <div className="text-[9px] text-zinc-600 font-mono text-right">{subLabel}</div>}
+        const LoadingBar = ({ progress, color = "bg-white", height = "h-1", animated = false }) => (
+            <div className={`w-full bg-zinc-900 ${height} overflow-hidden relative`}>
+                <div className={`absolute top-0 left-0 bottom-0 ${color} transition-all duration-1000 ${animated ? 'animate-pulse' : ''}`} style={{ width: `${progress}%` }}></div>
+                <div className="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhYWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-30"></div>
             </div>
         );
 
-        // --- CHARTS ---
+        const Button = ({ children, onClick, active = false, alert = false, className = "" }) => (
+            <button 
+                onClick={onClick}
+                className={`
+                    relative px-3 py-1.5 text-[10px] font-tech uppercase tracking-wider transition-all duration-200
+                    border focus:outline-none flex items-center justify-center gap-2
+                    ${active 
+                        ? (alert ? 'bg-red-950/60 border-red-500 text-red-500' : 'bg-zinc-800 border-zinc-400 text-white') 
+                        : (alert ? 'border-red-900/50 text-red-900 hover:border-red-500 hover:text-red-500' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600')
+                    }
+                    ${className}
+                `}
+            >
+                {children}
+            </button>
+        );
 
-        const AreaChart = ({ data, color = "#b91c1c", height = 60 }) => {
+        const Typewriter = ({ text, speed = 10 }) => {
+            const [display, setDisplay] = useState('');
+            useEffect(() => {
+                setDisplay('');
+                let i = 0;
+                const timer = setInterval(() => {
+                    if (i < text.length) {
+                        setDisplay(prev => prev + text.charAt(i));
+                        i++;
+                    } else clearInterval(timer);
+                }, speed);
+                return () => clearInterval(timer);
+            }, [text, speed]);
+            return <span>{display}</span>;
+        };
+
+        const LineChart = ({ data, color = "#b91c1c" }) => {
             const max = Math.max(...data);
             const min = Math.min(...data);
-            const range = max - min || 1;
-            
             const points = data.map((d, i) => {
                 const x = (i / (data.length - 1)) * 100;
-                const y = 100 - ((d - min) / range) * 80 - 10; // Padding
+                const y = 100 - ((d - min) / (max - min || 1)) * 80 - 10;
                 return `${x},${y}`;
             }).join(" ");
 
             return (
-                <div style={{ height }} className="relative w-full border border-zinc-800 bg-zinc-900/20 overflow-hidden">
-                    {/* Grid Background */}
-                    <div className="absolute inset-0 grid grid-cols-6 grid-rows-4">
-                        {[...Array(24)].map((_, i) => <div key={i} className="border-r border-b border-zinc-800/30"></div>)}
-                    </div>
-                    
-                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0">
-                        <defs>
-                            <linearGradient id={`grad-${color}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor={color} stopOpacity="0.4" />
-                                <stop offset="100%" stopColor={color} stopOpacity="0" />
-                            </linearGradient>
-                        </defs>
-                        <polygon points={`0,100 ${points} 100,100`} fill={`url(#grad-${color})`} />
-                        <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-                        
-                        {/* Data Points */}
+                <div className="w-full h-full relative">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                        <polyline points={points} fill="none" stroke={color} strokeWidth="2" vectorEffect="non-scaling-stroke" />
                         {data.map((d, i) => {
-                            const x = (i / (data.length - 1)) * 100;
-                            const y = 100 - ((d - min) / range) * 80 - 10;
-                            return <circle key={i} cx={x} cy={y} r="1" fill={color} className="opacity-50" />
+                             const x = (i / (data.length - 1)) * 100;
+                             const y = 100 - ((d - min) / (max - min || 1)) * 80 - 10;
+                             return <circle key={i} cx={x} cy={y} r="1.5" fill={color} />
                         })}
                     </svg>
+                    <div className="absolute inset-0 border-b border-l border-zinc-800 opacity-50"></div>
                 </div>
             );
         };
 
-        const RadarChart = ({ data, labels, color = "#b91c1c", size = 200 }) => {
-            const center = size / 2;
-            const radius = (size / 2) - 30; // More padding for labels
-            const angleStep = (Math.PI * 2) / data.length;
-            
-            const points = data.map((val, i) => {
-                const angle = (Math.PI / 2) + (i * angleStep); // Start top (90deg)
-                const r = (val / 100) * radius;
-                const x = center + Math.cos(angle) * r; // Note: adjusted orientation logic
-                const y = center - Math.sin(angle) * r; // SVG Y is down
-                return `${x},${y}`;
-            }).join(" ");
+        const RadarChart = () => {
+            return (
+                <div className="relative w-full h-full flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="w-3/4 h-3/4 overflow-visible">
+                        <polygon points="50,0 100,50 50,100 0,50" fill="none" stroke="#333" strokeWidth="1" />
+                        <polygon points="50,25 75,50 50,75 25,50" fill="none" stroke="#333" strokeDasharray="2 2" strokeWidth="0.5" />
+                        <line x1="50" y1="0" x2="50" y2="100" stroke="#333" strokeWidth="0.5" />
+                        <line x1="0" y1="50" x2="100" y2="50" stroke="#333" strokeWidth="0.5" />
+                        <polygon points="50,10 90,50 50,80 20,50" fill="rgba(185, 28, 28, 0.2)" stroke="#b91c1c" strokeWidth="1" />
+                    </svg>
+                    <div className="absolute top-0 text-[8px] text-zinc-500">FEAR</div>
+                    <div className="absolute bottom-0 text-[8px] text-zinc-500">COMPLIANCE</div>
+                    <div className="absolute left-0 text-[8px] text-zinc-500">RESISTANCE</div>
+                    <div className="absolute right-0 text-[8px] text-zinc-500">DEPENDENCY</div>
+                </div>
+            )
+        }
 
-            const levels = [0.25, 0.5, 0.75, 1.0];
+        // ==========================================
+        // PAGE MODULES
+        // ==========================================
+
+        // --- INTERACTIVE NETWORK GRAPH ---
+        const NetworkAnalysis = () => {
+            const [selectedNode, setSelectedNode] = useState(null);
+            const [filters, setFilters] = useState({ COMMAND: true, CONFLICT: true, SURV: true });
+
+            const nodes = [
+                { id: 'KRASK', label: 'DIR. KRASK', x: 50, y: 15, type: 'director', desc: 'Central Authority. ISB Directorate.' },
+                { id: 'MARUS', label: 'DIR. MARUS', x: 30, y: 40, type: 'asset', desc: 'Project Panopticon Lead. Deployed to Hok.' },
+                { id: 'KESSLER', label: 'G.M. KESSLER', x: 70, y: 40, type: 'target', desc: 'Political Obstacle. Reformist Leader.' },
+                { id: 'MINING', label: 'GUILD 442', x: 70, y: 70, type: 'target', desc: 'Labor Force. High Unrest. Strike Risk.' },
+                { id: 'REBELS', label: 'CELL AUREK', x: 20, y: 80, type: 'threat', desc: 'Insurgency detected. Funding Mining Guild.' },
+                { id: 'COMPNOR', label: 'COMPNOR', x: 80, y: 20, type: 'political', desc: 'Political Backing. Budget Source.' },
+                { id: 'UNI', label: 'UNI. HOK', x: 40, y: 60, type: 'surv', desc: 'Academic Dissidents. Monitored.' }
+            ];
+
+            const links = [
+                { s: 'KRASK', t: 'MARUS', type: 'COMMAND', color: '#fff' },
+                { s: 'KRASK', t: 'KESSLER', type: 'CONFLICT', color: '#b91c1c' },
+                { s: 'KRASK', t: 'COMPNOR', type: 'COMMAND', color: '#f59e0b' },
+                { s: 'KESSLER', t: 'MINING', type: 'COMMAND', color: '#fff' },
+                { s: 'REBELS', t: 'MINING', type: 'CONFLICT', color: '#b91c1c' },
+                { s: 'MARUS', t: 'MINING', type: 'SURV', color: '#3b82f6' },
+                { s: 'MARUS', t: 'UNI', type: 'SURV', color: '#3b82f6' },
+                { s: 'REBELS', t: 'UNI', type: 'CONFLICT', color: '#b91c1c' }
+            ];
+
+            const toggleFilter = (f) => setFilters(prev => ({ ...prev, [f]: !prev[f] }));
 
             return (
-                <div className="relative flex justify-center items-center" style={{ width: size, height: size }}>
-                    <svg width={size} height={size} className="overflow-visible">
-                        {/* Background Webs */}
-                        {levels.map((level, lvlIdx) => (
-                            <polygon 
-                                key={lvlIdx}
-                                points={data.map((_, i) => {
-                                    const angle = (Math.PI / 2) + (i * angleStep);
-                                    const r = level * radius;
-                                    return `${center + Math.cos(angle) * r},${center - Math.sin(angle) * r}`;
-                                }).join(" ")}
-                                fill="none"
-                                stroke="#3f3f46"
-                                strokeWidth="0.5"
-                                strokeDasharray={lvlIdx === 3 ? "0" : "2 2"}
-                            />
-                        ))}
-
-                        {/* Axis Lines */}
-                        {data.map((_, i) => {
-                             const angle = (Math.PI / 2) + (i * angleStep);
-                             const x = center + Math.cos(angle) * radius;
-                             const y = center - Math.sin(angle) * radius;
-                             return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#3f3f46" strokeWidth="0.5" />;
-                        })}
-
-                        {/* The Data Shape */}
-                        <polygon points={points} fill={color} fillOpacity="0.15" stroke={color} strokeWidth="1.5" />
+                <div className="h-full flex gap-6 animate-slide-in">
+                    <div className="flex-1 flex flex-col gap-4">
+                        <div className="flex gap-2 border-b border-zinc-800 pb-2">
+                            <Button active={filters.COMMAND} onClick={() => toggleFilter('COMMAND')}>COMMAND</Button>
+                            <Button active={filters.CONFLICT} onClick={() => toggleFilter('CONFLICT')} alert>CONFLICT</Button>
+                            <Button active={filters.SURV} onClick={() => toggleFilter('SURV')}>SURVEILLANCE</Button>
+                        </div>
                         
-                        {/* Corner Dots */}
-                        {data.map((val, i) => {
-                             const angle = (Math.PI / 2) + (i * angleStep);
-                             const r = (val / 100) * radius;
-                             const x = center + Math.cos(angle) * r;
-                             const y = center - Math.sin(angle) * r;
-                             return <circle key={i} cx={x} cy={y} r="1.5" fill={color} />;
-                        })}
-                    </svg>
-
-                    {/* Labels */}
-                    {labels.map((label, i) => {
-                        const angle = (Math.PI / 2) + (i * angleStep);
-                        // Position text slightly outside the radius
-                        const r = radius + 15;
-                        const x = center + Math.cos(angle) * r;
-                        const y = center - Math.sin(angle) * r;
-                        
-                        // Style based on position
-                        const style = {
-                            position: 'absolute',
-                            left: x,
-                            top: y,
-                            transform: 'translate(-50%, -50%)',
-                        };
-
-                        return (
-                            <div key={i} style={style} className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider bg-zinc-950 px-1 border border-zinc-900">
-                                {label}
-                            </div>
-                        );
-                    })}
-                </div>
-            );
-        };
-
-        // --- TABS ---
-
-        const Dashboard = () => (
-            <div className="space-y-6 animate-slide-in">
-                {/* Top Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                        { label: "Imperial Cohesion", val: "89.4%", delta: "-0.2%", color: "text-yellow-600" },
-                        { label: "Kessel Uprising", val: "ACTIVE", delta: "HIGH RISK", color: "text-red-500" },
-                        { label: "COMPNOR Budget", val: "94%", delta: "+10B CR", color: "text-zinc-300" },
-                        { label: "Detention Index", val: "14.2M", delta: "+2.1%", color: "text-red-600" }
-                    ].map((stat, i) => (
-                        <div key={i} className="border border-zinc-800 bg-zinc-950/50 p-4 tech-border relative group hover:bg-zinc-900 transition-colors">
-                            <div className="text-[9px] text-zinc-500 uppercase font-mono mb-2 flex justify-between">
-                                {stat.label}
-                                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[8px] text-zinc-600">UPDATING</span>
-                            </div>
-                            <div className="flex justify-between items-end">
-                                <div className="text-2xl font-display text-white tracking-tight">{stat.val}</div>
-                                <div className={`text-xs font-mono ${stat.color} bg-black/50 px-1`}>{stat.delta}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Main Chart */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <Card title="Fragmentation Analysis // Sector Stability" className="h-64">
-                            <div className="h-full flex flex-col pb-2">
-                                <div className="flex gap-4 mb-4">
-                                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
-                                        <div className="w-2 h-2 bg-red-600"></div> Mid Rim (Declining)
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
-                                        <div className="w-2 h-2 bg-zinc-700"></div> Core (Stable)
-                                    </div>
-                                </div>
-                                <div className="flex-1 w-full">
-                                    <AreaChart data={[65, 63, 60, 58, 62, 55, 52, 48, 45, 42, 40, 38]} color="#b91c1c" height="100%" />
-                                </div>
-                            </div>
-                        </Card>
-
-                        <div className="grid grid-cols-2 gap-6">
-                            <Card title="Threat Vectors">
-                                <div className="space-y-3 pt-1">
-                                    <ProgressBar value={78} label="Rebel Cells (Hydra)" color="bg-red-800" />
-                                    <ProgressBar value={45} label="Warlord Ambition" color="bg-yellow-700" />
-                                    <ProgressBar value={92} label="Kessel Infection" color="bg-red-600" subLabel="CRITICAL" />
-                                </div>
-                            </Card>
-                            <Card title="Priority Alerts" noPadding>
-                                <div className="divide-y divide-zinc-800/50">
-                                    {[
-                                        { code: "CRITICAL", msg: "Hok Mining Guild: Strike Imminent", time: "00:04" },
-                                        { code: "WARNING", msg: "Director Marus: Stress Elevating", time: "02:15" },
-                                        { code: "NOTICE", msg: "Kessler Inquiry: Expansion Denied", time: "06:00" }
-                                    ].map((alert, i) => (
-                                        <div key={i} className="flex gap-3 items-start p-3 hover:bg-zinc-900/40 transition-colors cursor-pointer">
-                                            <div className="text-[9px] font-mono text-zinc-600 whitespace-nowrap pt-0.5">{alert.time}</div>
-                                            <div>
-                                                <div className={`text-[9px] font-bold tracking-wider ${i === 0 ? 'text-red-500 animate-pulse' : 'text-zinc-400'}`}>{alert.code}</div>
-                                                <div className="text-[10px] text-zinc-400 leading-tight">{alert.msg}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-
-                    {/* Feed */}
-                    <Card title="Interceptor Feed // Global" className="h-full" noPadding>
-                         <div className="p-2 bg-zinc-900/50 border-b border-zinc-800 flex justify-between text-[9px] font-mono text-zinc-500 uppercase">
-                            <span>Signal Origin</span>
-                            <span>Risk Assessment</span>
-                        </div>
-                        <div className="overflow-y-auto custom-scroll h-[400px] font-mono text-[10px]">
-                            {[
-                                { id: "HOK-MINING", msg: "We can't keep quotas if shifts double. Kalen says we walk out tomorrow.", risk: 88 },
-                                { id: "COR-UNI", msg: "Did you read the old Republic constitution? It wasn't actually weak...", risk: 65 },
-                                { id: "KESSEL", msg: "[ENCRYPTED BURST] ...shipment diverted to Atollon...", risk: 95 },
-                                { id: "ALSAKAN", msg: "Director Krask visits next week? Clean the archives. Burn the old files.", risk: 45 },
-                                { id: "SYS-CORE", msg: "Grand Vizier requesting meeting with COMPNOR Select Committee.", risk: 10 },
-                                { id: "HOK-CIV", msg: "My credit score dropped 40 points. I didn't even buy anything.", risk: 12 },
-                                { id: "MIL-COM", msg: "Why are ISB political officers inspecting the 4th Fleet?", risk: 55 },
-                            ].map((item, i) => (
-                                <div key={i} className="p-3 border-b border-zinc-800/50 hover:bg-zinc-900/80 transition-colors group">
-                                    <div className="flex justify-between mb-1 opacity-70 group-hover:opacity-100">
-                                        <span className="text-zinc-500">{item.id}</span>
-                                        <span className={item.risk > 50 ? 'text-red-500' : 'text-green-600'}>RISK: {item.risk}</span>
-                                    </div>
-                                    <div className="text-zinc-400 group-hover:text-white transition-colors">"{item.msg}"</div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-2 border-t border-zinc-800 bg-zinc-950 text-[9px] text-zinc-600 text-center uppercase">
-                            Sampling 14,000,000 streams/sec
-                        </div>
-                    </Card>
-                </div>
-            </div>
-        );
-
-        const Panopticon = () => (
-            <div className="space-y-6 animate-slide-in">
-                {/* Header Block */}
-                <div className="border border-red-900/30 bg-red-950/10 p-6 flex flex-col md:flex-row justify-between items-end tech-border relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <Icon name="Eye" size={120} />
-                    </div>
-                    <div className="space-y-2 relative z-10">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-3xl font-display text-white tracking-widest uppercase">{PROJECT_PANOPTICON.name}</h2>
-                            <span className="px-2 py-0.5 border border-red-500 bg-red-950/50 text-red-500 text-[9px] font-mono uppercase tracking-wider">Clearance 10</span>
-                        </div>
-                        <p className="font-mono text-xs text-red-400 max-w-2xl">{PROJECT_PANOPTICON.formalName}</p>
-                        <p className="font-mono text-[10px] text-zinc-500 italic max-w-xl">
-                            "A society that prioritizes privacy over security has chosen chaos over order. We enable systematic inevitability."
-                        </p>
-                    </div>
-                    <div className="text-right mt-4 md:mt-0 relative z-10">
-                        <div className="text-[9px] font-mono text-zinc-500 uppercase">Allocated Budget</div>
-                        <div className="text-2xl font-mono text-white tracking-tighter">10,000,000,000 <span className="text-sm text-zinc-600">CR</span></div>
-                        <div className="text-[9px] font-mono text-red-500 uppercase mt-1">Status: {PROJECT_PANOPTICON.status}</div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Timeline */}
-                    <div className="lg:col-span-2 space-y-4">
-                        <h3 className="text-xs font-display text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2 mb-4">Implementation Protocol</h3>
-                        {PHASES.map((phase) => (
-                            <div key={phase.id} className={`group border p-4 flex gap-4 transition-all relative overflow-hidden ${phase.status === 'ACTIVE' ? 'bg-zinc-900/60 border-red-900/60' : 'bg-zinc-950/30 border-zinc-800/60 opacity-60 hover:opacity-100'}`}>
-                                <div className="flex flex-col items-center justify-center w-12 border-r border-zinc-800 pr-4 shrink-0">
-                                    <span className="text-[9px] font-mono text-zinc-600 uppercase">Phase</span>
-                                    <span className={`text-xl font-display font-bold ${phase.status === 'ACTIVE' ? 'text-red-500' : 'text-zinc-500'}`}>{phase.id}</span>
-                                </div>
-                                <div className="flex-1 space-y-2 relative z-10">
-                                    <div className="flex justify-between items-start">
-                                        <h4 className={`font-bold font-mono text-sm uppercase ${phase.status === 'ACTIVE' ? 'text-white' : 'text-zinc-500'}`}>{phase.title}</h4>
-                                        <span className="text-[9px] font-mono bg-zinc-950 px-2 py-0.5 border border-zinc-800 text-zinc-500 uppercase">Month {phase.months}</span>
-                                    </div>
-                                    <p className="text-xs font-mono text-zinc-400 leading-relaxed">{phase.desc}</p>
-                                    {phase.status === 'ACTIVE' && <ProgressBar value={phase.progress} label="Completion Status" />}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Strategy Sidebar */}
-                    <div className="space-y-6">
-                        <Card title="Political Obstacle: Kessler" alert>
-                            <div className="flex gap-4 items-start mb-4">
-                                <div className="w-12 h-12 bg-zinc-800 flex items-center justify-center shrink-0 border border-zinc-700">
-                                    <span className="font-display font-bold text-xl text-zinc-500">GK</span>
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-white uppercase">Grand Moff Garrik Kessler</div>
-                                    <div className="text-[9px] text-zinc-500 font-mono">Reformist Faction Leader</div>
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <p className="text-[10px] text-zinc-400 leading-relaxed border-l-2 border-red-900/50 pl-2">
-                                    Advocates "Trust-Based Governance." Currently blocking ISB expansion in Oversector 4.
-                                </p>
-                                <div className="bg-zinc-900/50 p-2 border border-zinc-800">
-                                    <div className="text-[9px] text-red-500 uppercase font-bold mb-1">Counter-Strategy</div>
-                                    <p className="text-[10px] text-zinc-300">
-                                        Exploit rising labor unrest in Hok's mining sector. Frame Panopticon as "Infrastructure Security Audit" to protect economic output. Kessler cannot refuse without appearing negligent.
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-
-                        <Card title="System Architecture">
-                             <div className="space-y-4 relative pl-4">
-                                <div className="absolute left-2 top-2 bottom-2 w-px bg-zinc-800"></div>
-                                {[
-                                    { l: "Data Layer", d: "Collection: Finance, Comms, Bio, Transport", i: "Database" },
-                                    { l: "Analysis Layer", d: "Algorithmic processing & pattern recognition", i: "Cpu" },
-                                    { l: "Intervention Layer", d: "Graduated pressure & environmental obstacles", i: "Crosshair" }
-                                ].map((layer, i) => (
-                                    <div key={i} className="relative">
-                                        <div className="absolute -left-[13px] top-2 w-2 h-2 bg-zinc-900 border border-zinc-600 rounded-full"></div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Icon name={layer.i} size={12} className="text-zinc-500" />
-                                            <span className="text-[10px] font-bold text-zinc-300 uppercase">{layer.l}</span>
-                                        </div>
-                                        <div className="text-[10px] text-zinc-500 leading-tight">{layer.d}</div>
-                                    </div>
-                                ))}
-                             </div>
-                        </Card>
-                    </div>
-                </div>
-            </div>
-        );
-
-        const TargetHok = () => (
-            <div className="space-y-6 animate-slide-in">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Planet Viz */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <Card title="Planetary Profile: Hok" className="h-full min-h-[400px] flex flex-col items-center justify-center relative bg-black">
-                             {/* Planet Animation */}
-                             <div className="w-56 h-56 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-900 border border-zinc-800 relative shadow-[0_0_30px_rgba(255,255,255,0.05)] flex items-center justify-center mb-8 overflow-hidden">
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-[spin_120s_linear_infinite]"></div>
-                                {/* Orbital rings/markers */}
-                                <div className="absolute inset-0 border border-dashed border-zinc-700/50 rounded-full animate-[spin_60s_linear_infinite]"></div>
-                                <div className="absolute w-[110%] h-[110%] border border-zinc-800 rounded-full animate-[spin_40s_linear_infinite_reverse]"></div>
+                        <Box title="HOLONET_TOPOLOGY // INTERACTIVE" className="flex-1 bg-zinc-950">
+                            <svg viewBox="0 0 100 100" className="w-full h-full">
+                                <defs>
+                                    <marker id="arrow" markerWidth="4" markerHeight="4" refX="10" refY="2" orient="auto">
+                                        <path d="M0,0 L4,2 L0,4" fill="#666" />
+                                    </marker>
+                                </defs>
                                 
-                                {/* Status Markers */}
-                                <div className="absolute top-1/3 left-1/3 w-3 h-3 bg-red-500/50 rounded-full animate-blink shadow-[0_0_15px_red]">
-                                    <div className="absolute -top-4 -left-4 text-[8px] text-red-500 font-mono whitespace-nowrap">SECTOR 7G</div>
-                                </div>
-                            </div>
+                                {links.map((l, i) => {
+                                    if (!filters[l.type]) return null;
+                                    const s = nodes.find(n => n.id === l.s);
+                                    const t = nodes.find(n => n.id === l.t);
+                                    const isConnected = selectedNode && (selectedNode.id === l.s || selectedNode.id === l.t);
+                                    const opacity = selectedNode ? (isConnected ? 1 : 0.1) : 0.6;
+                                    
+                                    return (
+                                        <g key={i} className="transition-all duration-500">
+                                            <line x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke={l.color} strokeWidth="0.5" opacity={opacity} />
+                                            {isConnected && <circle cx={(s.x+t.x)/2} cy={(s.y+t.y)/2} r="1" fill={l.color} className="animate-ping" />}
+                                        </g>
+                                    )
+                                })}
 
-                            <div className="w-full space-y-4 px-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="border-b border-zinc-800 pb-1">
-                                        <div className="text-[9px] font-mono text-zinc-500 uppercase">Population</div>
-                                        <div className="text-sm font-mono text-white">18.2 Million</div>
-                                    </div>
-                                    <div className="border-b border-zinc-800 pb-1">
-                                        <div className="text-[9px] font-mono text-zinc-500 uppercase">Economy</div>
-                                        <div className="text-sm font-mono text-white">Mining / Mfg</div>
-                                    </div>
-                                    <div className="border-b border-zinc-800 pb-1">
-                                        <div className="text-[9px] font-mono text-zinc-500 uppercase">Governor</div>
-                                        <div className="text-sm font-mono text-red-400">G.M. Kessler</div>
-                                    </div>
-                                    <div className="border-b border-zinc-800 pb-1">
-                                        <div className="text-[9px] font-mono text-zinc-500 uppercase">Unrest Index</div>
-                                        <div className="text-sm font-mono text-red-500 animate-pulse">CRITICAL</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
+                                {nodes.map((n, i) => {
+                                    const isSelected = selectedNode?.id === n.id;
+                                    const isDimmed = selectedNode && !isSelected && !links.some(l => filters[l.type] && ((l.s === n.id && l.t === selectedNode.id) || (l.t === n.id && l.s === selectedNode.id)));
+                                    
+                                    return (
+                                        <g 
+                                            key={i} 
+                                            onClick={() => setSelectedNode(n)}
+                                            className={`cursor-pointer transition-all duration-300 ${isDimmed ? 'opacity-20' : 'opacity-100'}`}
+                                        >
+                                            <circle 
+                                                cx={n.x} cy={n.y} r={isSelected ? 6 : 4} 
+                                                fill={n.type === 'director' ? '#fff' : n.type === 'target' ? '#b91c1c' : n.type === 'political' ? '#f59e0b' : n.type === 'threat' ? '#ef4444' : '#3b82f6'} 
+                                                className="transition-all duration-300"
+                                                stroke={isSelected ? 'white' : 'none'}
+                                                strokeWidth="0.5"
+                                            />
+                                            <text x={n.x} y={n.y + 8} fontSize="3" textAnchor="middle" fill={isSelected ? '#fff' : '#888'} className="font-mono font-bold">{n.label}</text>
+                                        </g>
+                                    )
+                                })}
+                            </svg>
+                        </Box>
                     </div>
 
-                    {/* Intel Feed */}
-                    <div className="lg:col-span-8 space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                            <Card title="Industrial Output Status">
-                                <div className="space-y-4 pt-2">
-                                    <ProgressBar value={88} label="Doonium Extraction" color="bg-zinc-600" />
-                                    <ProgressBar value={91} label="Tibanna Refining" color="bg-zinc-600" />
-                                    <ProgressBar value={42} label="Labor Compliance" color="bg-red-600" subLabel="STRIKE IMMINENT" />
-                                </div>
-                            </Card>
-                            <Card title="Surveillance Penetration">
-                                <div className="space-y-4 pt-2">
-                                    <ProgressBar value={35} label="Camera Network" color="bg-yellow-600" subLabel="EXPANSION REQUIRED" />
-                                    <ProgressBar value={85} label="Comms Intercept" color="bg-green-600" />
-                                    <ProgressBar value={12} label="Predictive Algorithms" color="bg-zinc-700" subLabel="OFFLINE" />
-                                </div>
-                            </Card>
-                        </div>
-
-                        <Card title="Active Surveillance Targets // Sector 7-G" className="h-[280px]">
-                            <div className="h-full overflow-y-auto custom-scroll pr-2 space-y-2">
-                                {[
-                                    { name: "Mining Guild Local 442", status: "INFILTRATED", type: "Labor", detail: "Leader 'Kalen' holding unauthorized meetings." },
-                                    { name: "University Campus B", status: "MONITORED", type: "Edu", detail: "Ideological drift detected in History dept." },
-                                    { name: "Transit Hub Alpha", status: "SECURE", type: "Infra", detail: "Biometric scanners installation complete." },
-                                    { name: "Docking Bay 94", status: "FLAGGED", type: "Trade", detail: "Unmanifested cargo crates detected." },
-                                    { name: "Factory District 4", status: "WARNING", type: "Labor", detail: "Work slowdown observed. -15% output." },
-                                ].map((t, i) => (
-                                    <div key={i} className="flex justify-between items-center p-3 bg-zinc-900/30 border-l-2 border-zinc-700 hover:border-red-500 hover:bg-zinc-900 transition-all group">
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold text-white group-hover:text-red-400">{t.name}</span>
-                                                <span className="text-[8px] font-mono text-zinc-600 border border-zinc-800 px-1">{t.type}</span>
+                    {/* Detail Sidebar */}
+                    <div className="w-80 flex flex-col gap-4">
+                        <Box title="NODE_INTEL" className="h-2/3" scroll>
+                             {selectedNode ? (
+                                 <div className="space-y-4 animate-fade-in">
+                                    <div className="border-b border-zinc-800 pb-2">
+                                        <div className="text-[9px] text-zinc-500 uppercase">Designation</div>
+                                        <div className="text-2xl font-header text-white">{selectedNode.label}</div>
+                                        <div className="text-xs text-zinc-400 font-mono">{selectedNode.desc}</div>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <div className="text-[9px] text-zinc-500 uppercase">Connections</div>
+                                        {links.filter(l => filters[l.type] && (l.s === selectedNode.id || l.t === selectedNode.id)).map((l, i) => (
+                                            <div key={i} className="flex items-center gap-2 text-xs font-mono border border-zinc-800 p-2 bg-zinc-900/50">
+                                                <div className="w-2 h-2 rounded-full" style={{background: l.color}}></div>
+                                                <span className="text-zinc-400">{l.type}</span>
+                                                <span className="text-zinc-600">→</span>
+                                                <span className="text-white">{l.s === selectedNode.id ? l.t : l.s}</span>
                                             </div>
-                                            <div className="text-[9px] text-zinc-500 mt-0.5">{t.detail}</div>
+                                        ))}
+                                    </div>
+
+                                    {selectedNode.type === 'target' && (
+                                        <div className="p-2 bg-red-950/20 border border-red-900/50 mt-4">
+                                            <div className="text-red-500 text-[9px] font-bold uppercase mb-1">Tactical Recommendation</div>
+                                            <div className="text-xs text-zinc-300">Increase surveillance pressure. Identify weak points in support structure.</div>
                                         </div>
-                                        <span className={`text-[9px] font-mono px-2 py-0.5 ${t.status === 'SECURE' ? 'bg-green-900/20 text-green-500' : 'bg-red-900/20 text-red-500'}`}>{t.status}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </Card>
+                                    )}
+                                 </div>
+                             ) : (
+                                 <div className="h-full flex items-center justify-center text-center opacity-50">
+                                     <div className="space-y-2">
+                                         <div className="text-4xl">☊</div>
+                                         <div className="text-xs font-mono">SELECT NODE<br/>FOR ANALYSIS</div>
+                                     </div>
+                                 </div>
+                             )}
+                        </Box>
+                         <Box title="INTERCEPTS" className="h-1/3" alert scroll>
+                             <div className="space-y-2 text-[10px] font-mono">
+                                <div className="text-zinc-500 border-b border-zinc-800 pb-1">/// LIVE FEED ///</div>
+                                <div className="text-zinc-400">SRC: UNKNOWN (Mid Rim)</div>
+                                <div className="text-zinc-400">DEST: MINING GUILD 442</div>
+                                <div className="text-red-400 break-all">HASH: 883-992-AX-11</div>
+                                <div className="text-zinc-600 mt-1">Attempting decryption... Failed. Rotating keys.</div>
+                                <div className="mt-2 text-zinc-400">SRC: COMPNOR</div>
+                                <div className="text-zinc-400">DEST: KRASK</div>
+                                <div className="text-zinc-300">MSG: "Budget approved."</div>
+                             </div>
+                        </Box>
                     </div>
                 </div>
-            </div>
-        );
+            )
+        }
 
-        const Dossiers = () => (
-            <div className="space-y-8 animate-slide-in">
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    {/* KRASK */}
-                    <Card title="Subject Profile: Self (Krask)" className="h-full">
-                        <div className="flex flex-col md:flex-row gap-6">
-                            <div className="w-48 shrink-0 flex flex-col gap-4">
-                                <div className="aspect-[3/4] bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center p-4 relative">
-                                    <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                    <div className="w-20 h-20 rounded-full bg-zinc-800 flex items-center justify-center mb-4 text-2xl font-display text-zinc-600">VK</div>
-                                    <div className="text-center">
-                                        <div className="text-lg font-display text-white">VALEN KRASK</div>
-                                        <div className="text-[10px] font-mono text-red-500 tracking-widest">DIRECTOR</div>
-                                    </div>
-                                </div>
-                                <RadarChart 
-                                    data={[95, 100, 15, 90, 85]} 
-                                    labels={["Loyalty", "Logic", "Empathy", "Strategy", "Authority"]}
-                                    size={190} 
-                                />
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                <div className="bg-zinc-900/30 p-3 border-l-2 border-red-900">
-                                    <div className="text-[9px] text-zinc-500 uppercase mb-1">Psychological Assessment</div>
-                                    <p className="text-xs font-mono text-zinc-300 leading-relaxed italic">
-                                        "The Physician." Approaches security as surgery: painful but necessary. Absolute certainty in moral correctness of authoritarian control. Detached. Clinical. Believes the Republic died from inability to make unpopular decisions.
-                                    </p>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between border-b border-zinc-800 py-1">
-                                        <span className="text-[10px] font-mono text-zinc-500 uppercase">Origin</span>
-                                        <span className="text-[10px] text-white">Alsakan (Core)</span>
-                                    </div>
-                                    <div className="flex justify-between border-b border-zinc-800 py-1">
-                                        <span className="text-[10px] font-mono text-zinc-500 uppercase">Defining Moment</span>
-                                        <span className="text-[10px] text-white">The Mother Incident (19 BBY)</span>
-                                    </div>
-                                    <div className="flex justify-between border-b border-zinc-800 py-1">
-                                        <span className="text-[10px] font-mono text-zinc-500 uppercase">Weakness</span>
-                                        <span className="text-[10px] text-red-400">Ideological Blindness</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
+        // --- INTERACTIVE LOGISTICS ---
+        const Logistics = () => {
+            const [budget, setBudget] = useState({ surv: 60, field: 30, rd: 10 });
+            const [assets, setAssets] = useState([
+                { id: 'P-882', type: 'PROBE', loc: 'Hok Orbit', status: 'SCANNING', health: 100 },
+                { id: 'P-883', type: 'PROBE', loc: 'Sector 7G', status: 'OFFLINE', health: 0 },
+                { id: 'TRP-A', type: 'TROOPER_BTN', loc: 'Admin Zone', status: 'PATROL', health: 98 },
+                { id: 'TRP-B', type: 'TROOPER_BTN', loc: 'Mining Dist', status: 'ENGAGED', health: 75 },
+                { id: 'INT-1', type: 'ISB_AGENT', loc: 'Uni. District', status: 'UNDERCOVER', health: 100 }
+            ]);
+            const [selectedAsset, setSelectedAsset] = useState(null);
 
-                    {/* MARUS */}
-                    <Card title="Operational Asset: Thane Marus" className="h-full">
-                        <div className="flex flex-col md:flex-row gap-6">
-                            <div className="w-48 shrink-0 flex flex-col gap-4">
-                                <div className="aspect-[3/4] bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center p-4">
-                                    <div className="w-20 h-20 rounded-full bg-zinc-800 flex items-center justify-center mb-4 text-2xl font-display text-zinc-600">TM</div>
-                                    <div className="text-center">
-                                        <div className="text-lg font-display text-white">THANE MARUS</div>
-                                        <div className="text-[10px] font-mono text-yellow-500 tracking-widest">PROJ DIRECTOR</div>
-                                    </div>
-                                </div>
-                                <RadarChart 
-                                    data={[85, 90, 45, 80, 70]} 
-                                    labels={["Loyalty", "Logic", "Empathy", "Strategy", "Authority"]}
-                                    size={190} 
-                                    color="#eab308"
-                                />
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                <div className="bg-zinc-900/30 p-3 border-l-2 border-yellow-700">
-                                    <div className="text-[9px] text-zinc-500 uppercase mb-1">Utility Assessment</div>
-                                    <p className="text-xs font-mono text-zinc-300 leading-relaxed">
-                                        Intelligent. Pragmatic. Capable of "necessary cruelty" but lacks fanatical zeal. Selected for flexibility. Questioned ethical implications of Panopticon ("sophisticated slavery") but accepted the "Freedom through Order" argument.
-                                    </p>
-                                </div>
-                                <div className="space-y-3 pt-2">
-                                    <ProgressBar value={94} label="Obedience Index" color="bg-green-600" />
-                                    <ProgressBar value={40} label="Ideological Zeal" color="bg-yellow-600" />
-                                    <div className="mt-2 text-[9px] font-mono text-zinc-500">
-                                        <span className="text-red-500 font-bold">LEVERAGE:</span> Family (Wife + 2 Children). Currently residing on Coruscant. Relocation to Hok offered as "benefit" (read: threat).
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-
-                {/* KESSLER */}
-                <Card title="Primary Antagonist: Grand Moff Kessler" alert>
-                    <div className="flex gap-6 items-center">
-                        <div className="w-16 h-16 bg-red-950/20 border border-red-900/50 flex items-center justify-center shrink-0">
-                            <span className="font-display font-bold text-2xl text-red-700">GK</span>
-                        </div>
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <div className="text-[9px] text-zinc-500 uppercase mb-1">Philosophy</div>
-                                <div className="text-sm font-bold text-white">"Trust-Based Governance"</div>
-                                <div className="text-[9px] text-zinc-400">Believes heavy security creates resistance.</div>
-                            </div>
-                            <div>
-                                <div className="text-[9px] text-zinc-500 uppercase mb-1">Threat Level</div>
-                                <div className="text-sm font-bold text-red-500">HIGH (Political)</div>
-                                <div className="text-[9px] text-zinc-400">Can block expansion in Oversector 4.</div>
-                            </div>
-                            <div>
-                                <div className="text-[9px] text-zinc-500 uppercase mb-1">Vulnerability</div>
-                                <div className="text-sm font-bold text-white">Economic Output</div>
-                                <div className="text-[9px] text-zinc-400">Cannot ignore labor strikes.</div>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-            </div>
-        );
-
-        const Archives = () => (
-            <div className="space-y-6 animate-slide-in">
-                <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
-                    <h2 className="text-xl font-display text-white tracking-widest uppercase">Secure Logs // Encrypted</h2>
-                    <Icon name="Lock" className="text-red-600 animate-pulse" />
-                </div>
-
-                <div className="space-y-3">
-                    {[
-                        { 
-                            id: "LOG-0547-START", 
-                            date: "5 ABY // 05:47", 
-                            title: "Morning Reflection", 
-                            content: "The city transitions from night to day. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure. Order requires vigilance." 
-                        },
-                        { 
-                            id: "MTG-MARUS-01", 
-                            date: "5 ABY // 07:00", 
-                            title: "Meeting: Thane Marus / Panopticon Initiation", 
-                            content: "Marus is skeptical but obedient. I showed him the 'Comprehensive Social Equilibrium Initiative'. He called it ambitious. He asked about the privacy implications. I told him privacy is a luxury the Empire cannot afford. We are building systematic inevitability." 
-                        },
-                        { 
-                            id: "STRAT-KESSLER", 
-                            date: "5 ABY // 07:46", 
-                            title: "The Kessler Maneuver", 
-                            content: "Marus identified the risk: Grand Moff Kessler. I explained the strategy. We frame Panopticon as 'Infrastructure Security Audit'. We use the labor unrest on Hok—which Kessler is responsible for—as the pretext. He cannot refuse security upgrades without appearing negligent." 
-                        },
-                        { 
-                            id: "PRSNL-REF", 
-                            date: "19 BBY (ARCHIVED)", 
-                            title: "The Mother Incident", 
-                            content: "Lyssa Krask. History teacher. Couldn't adapt to the New Order. I reviewed her file myself. Recommended 'ideological counseling'. Three months re-education. She never spoke to me again. I showed mercy. I chose the minimal intervention necessary. I am a surgeon." 
-                        },
-                        {
-                            id: "SYS-NOTE-99",
-                            date: "5 ABY // 19:27",
-                            title: "Marus Acceptance",
-                            content: "Marus accepted the assignment. He fears we are creating 'sophisticated slavery.' I told him we are creating 'safe structure.' Freedom is the presence of safety, not the absence of rules. He will deploy in 3 weeks."
-                        }
-                    ].map((log, i) => (
-                        <div key={i} className="group border border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 transition-all duration-300 tech-border overflow-hidden">
-                            <div className="p-4 flex flex-col md:flex-row gap-4 md:gap-8">
-                                <div className="md:w-32 shrink-0 border-r border-zinc-800/50 pr-4 flex flex-col justify-center">
-                                    <div className="text-[9px] font-mono text-red-500 font-bold">{log.id}</div>
-                                    <div className="text-[9px] font-mono text-zinc-600">{log.date}</div>
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-xs font-mono font-bold text-white mb-2 uppercase group-hover:text-red-400 transition-colors">{log.title}</h3>
-                                    <p className="text-[11px] font-mono text-zinc-400 leading-relaxed font-light">{log.content}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-
-        // --- APP SHELL ---
-
-        const LoginScreen = ({ onLogin }) => {
-            const [step, setStep] = useState(0);
-
-            // Auto-advance simulation
-            const handleInteract = () => {
-                if(step === 0) {
-                    setStep(1);
-                    setTimeout(() => setStep(2), 800);
-                    setTimeout(() => setStep(3), 2000);
-                    setTimeout(() => {
-                        setStep(4);
-                        setTimeout(onLogin, 1000);
-                    }, 3500);
-                }
+            const totalBudget = 100;
+            const usedBudget = budget.surv + budget.field + budget.rd;
+            
+            // Simulation Metrics based on budget
+            const stability = Math.min(100, Math.floor((budget.surv * 0.8) + (budget.field * 0.5)));
+            const fear = Math.min(100, Math.floor((budget.field * 1.2) + (budget.surv * 0.2)));
+            
+            const handleBudgetChange = (type, val) => {
+                // Simple logic to prevent going over 100 (rough UX)
+                const newVal = parseInt(val);
+                setBudget(prev => ({ ...prev, [type]: newVal }));
             };
 
             return (
-                <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden" onClick={handleInteract}>
-                    <div className="grid-bg absolute inset-0 opacity-20 pointer-events-none"></div>
-                    <div className="scanline"></div>
-                    
-                    <div className="relative z-10 flex flex-col items-center cursor-pointer group">
-                        <div className="mb-16 text-center space-y-2">
-                            <h1 className="text-8xl font-display font-black text-white tracking-[0.2em] opacity-90 glitch-text">ISB</h1>
-                            <div className="text-[10px] font-mono text-zinc-600 tracking-[0.5em] uppercase">Central Administrative Node</div>
-                        </div>
+                <div className="h-full flex gap-6 animate-slide-in">
+                    {/* Resource Allocation Panel */}
+                    <div className="w-1/2 flex flex-col gap-6">
+                        <Box title="RESOURCE_ALLOCATION_MATRIX" className="flex-1">
+                            <div className="p-6 space-y-8">
+                                <div>
+                                    <div className="flex justify-between mb-2 font-header text-xl text-white">
+                                        <span>SURVEILLANCE</span>
+                                        <span>{budget.surv}%</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="0" max="100" value={budget.surv} 
+                                        onChange={(e) => handleBudgetChange('surv', e.target.value)} 
+                                        className="w-full"
+                                    />
+                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Increases detection rate. Lowers privacy.</div>
+                                </div>
 
-                        {/* Lock UI */}
-                        <div className={`relative w-64 h-64 rounded-full border-2 ${step === 4 ? 'border-green-800 shadow-[0_0_50px_rgba(22,163,74,0.2)]' : 'border-zinc-800'} bg-zinc-950 flex items-center justify-center transition-all duration-500`}>
-                            
-                            {/* Rotating Ring */}
-                            <div className={`absolute inset-4 border border-dashed border-zinc-800 rounded-full transition-all duration-1000 ${step >= 2 ? 'rotate-180 scale-90' : 'rotate-0'}`}></div>
-                            
-                            {/* Center Status */}
-                            <div className="flex flex-col items-center justify-center">
-                                {step === 0 && <div className="text-xs font-mono text-zinc-500 animate-pulse tracking-widest">[ TOUCH TO INSERT KEY ]</div>}
-                                {step === 1 && <div className="text-xs font-mono text-zinc-400 tracking-widest">READING CYLINDER...</div>}
-                                {step === 2 && <div className="text-xs font-mono text-zinc-400 tracking-widest">DECRYPTING...</div>}
-                                {step === 3 && <div className="text-xs font-mono text-red-500 tracking-widest animate-pulse">VERIFYING BIOMETRICS</div>}
-                                {step === 4 && <div className="text-xs font-mono text-green-500 tracking-widest">IDENTITY CONFIRMED</div>}
+                                <div>
+                                    <div className="flex justify-between mb-2 font-header text-xl text-white">
+                                        <span>FIELD OPERATIONS</span>
+                                        <span>{budget.field}%</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="0" max="100" value={budget.field} 
+                                        onChange={(e) => handleBudgetChange('field', e.target.value)} 
+                                        className="w-full"
+                                    />
+                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Increases fear. High visibility.</div>
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between mb-2 font-header text-xl text-white">
+                                        <span>R&D / ALGORITHMS</span>
+                                        <span>{budget.rd}%</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="0" max="100" value={budget.rd} 
+                                        onChange={(e) => handleBudgetChange('rd', e.target.value)} 
+                                        className="w-full"
+                                    />
+                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Improves prediction accuracy.</div>
+                                </div>
+                                
+                                <div className="pt-4 border-t border-zinc-800">
+                                    <div className="text-xs font-mono text-zinc-500 uppercase mb-2">Projected Outcomes</div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-2 border border-zinc-800 bg-zinc-900 text-center">
+                                            <div className="text-[9px] text-zinc-500">STABILITY</div>
+                                            <div className="text-xl text-white font-header">{stability}%</div>
+                                        </div>
+                                        <div className="p-2 border border-zinc-800 bg-zinc-900 text-center">
+                                            <div className="text-[9px] text-zinc-500">FEAR INDEX</div>
+                                            <div className="text-xl text-red-500 font-header">{fear}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Box>
+                    </div>
+
+                    {/* Asset Management */}
+                    <div className="w-1/2 flex flex-col gap-6">
+                        <Box title="ASSET_MANIFEST" className="h-2/3" scroll>
+                            <div className="space-y-2">
+                                {assets.map(asset => (
+                                    <div 
+                                        key={asset.id}
+                                        onClick={() => setSelectedAsset(asset)}
+                                        className={`p-3 border cursor-pointer transition-all flex justify-between items-center ${selectedAsset?.id === asset.id ? 'bg-zinc-800 border-white' : 'bg-black border-zinc-800 hover:bg-zinc-900'}`}
+                                    >
+                                        <div>
+                                            <div className="font-tech text-white">{asset.id}</div>
+                                            <div className="text-[9px] text-zinc-500">{asset.type}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className={`text-[10px] font-bold ${asset.status === 'OFFLINE' || asset.status === 'ENGAGED' ? 'text-red-500' : 'text-green-500'}`}>{asset.status}</div>
+                                            <div className="text-[9px] text-zinc-500">{asset.loc}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Box>
+                        <Box title="UNIT_DETAILS" className="h-1/3" alert={selectedAsset?.health < 50}>
+                            {selectedAsset ? (
+                                <div className="space-y-2 animate-fade-in">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-header text-xl text-white">{selectedAsset.id}</span>
+                                        <span className="text-xs font-mono">{selectedAsset.type}</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-[9px] text-zinc-500"><span>INTEGRITY</span><span>{selectedAsset.health}%</span></div>
+                                        <LoadingBar progress={selectedAsset.health} color={selectedAsset.health < 30 ? 'bg-red-600' : 'bg-white'} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <Button>RECALL</Button>
+                                        <Button alert>SELF_DESTRUCT</Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-center opacity-50 text-xs font-mono">SELECT UNIT</div>
+                            )}
+                        </Box>
+                    </div>
+                </div>
+            )
+        }
+
+        // --- TACTICAL MAP (HOK) ---
+        const InteractiveMap = () => {
+            const [selectedSector, setSelectedSector] = useState(null);
+            const [overlay, setOverlay] = useState('RISK'); // RISK, OUTPUT, SURV
+            const [tab, setTab] = useState('MAP');
+
+            const handleSectorClick = (sector) => {
+                setSelectedSector(sector);
+                setTab('DATA');
+            };
+
+            const getSectorColor = (sector) => {
+                if (overlay === 'RISK') return sector.risk > 70 ? '#ef4444' : sector.risk > 40 ? '#f59e0b' : '#10b981';
+                if (overlay === 'OUTPUT') return sector.output < 50 ? '#ef4444' : '#10b981';
+                if (overlay === 'SURV') return '#3b82f6';
+                return '#fff';
+            };
+
+            return (
+                <div className="h-full flex flex-col gap-4 animate-slide-in">
+                    <div className="flex gap-2 border-b border-zinc-800 pb-2 shrink-0">
+                        <Button active={tab === 'MAP'} onClick={() => setTab('MAP')}>SECTOR_MAP</Button>
+                        <Button active={tab === 'DATA'} onClick={() => setTab('DATA')}>SECTOR_INTEL</Button>
+                        <Button active={tab === 'LABOR'} onClick={() => setTab('LABOR')} alert>LABOR_WATCH</Button>
+                    </div>
+
+                    <div className="flex-1 flex gap-4 min-h-0">
+                        <Box title={`TACTICAL_VIEW // HOK // ${overlay}_OVERLAY`} className="flex-1 bg-zinc-950">
+                            <div className="absolute top-4 left-4 z-10 flex gap-2">
+                                <Button active={overlay === 'RISK'} onClick={() => setOverlay('RISK')} alert>RISK</Button>
+                                <Button active={overlay === 'OUTPUT'} onClick={() => setOverlay('OUTPUT')}>OUTPUT</Button>
+                                <Button active={overlay === 'SURV'} onClick={() => setOverlay('SURV')}>SURVEILLANCE</Button>
                             </div>
 
-                            {/* Key Visual */}
-                            <div className={`absolute -top-12 w-8 h-32 bg-gradient-to-b from-zinc-500 to-zinc-800 rounded-sm shadow-xl transition-all duration-500 ${step > 0 ? 'translate-y-24 opacity-100' : '-translate-y-12 opacity-0'}`}>
-                                <div className="w-full h-1 bg-red-500 mt-4 shadow-[0_0_10px_red]"></div>
+                            <div className="w-full h-full relative p-8">
+                                <svg viewBox="0 0 100 100" className="w-full h-full filter drop-shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+                                    <defs>
+                                        <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#222" strokeWidth="0.5"/>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="100%" height="100%" fill="url(#grid)" />
+                                    <path d="M20,30 L45,50 L70,30 L60,70 L30,60 Z" fill="none" stroke="#333" strokeWidth="0.5" strokeDasharray="2 2" />
+                                    {SECTORS.map((sector) => {
+                                        const isSelected = selectedSector?.id === sector.id;
+                                        const color = getSectorColor(sector);
+                                        return (
+                                            <g key={sector.id} onClick={() => handleSectorClick(sector)} className="cursor-pointer transition-all duration-300 group">
+                                                {isSelected && <circle cx={sector.x} cy={sector.y} r="12" fill="none" stroke="white" strokeWidth="0.5" className="animate-ping opacity-50" />}
+                                                <circle cx={sector.x} cy={sector.y} r={isSelected ? 6 : 4} fill={color} fillOpacity="0.2" stroke={color} strokeWidth={isSelected ? 1 : 0.5} className="transition-all duration-300" />
+                                                <text x={sector.x} y={sector.y + 10} fill={isSelected ? '#fff' : '#666'} fontSize="3" textAnchor="middle" className="font-mono tracking-widest uppercase transition-colors">{sector.name}</text>
+                                                <rect x={sector.x + 5} y={sector.y - 5} width="20" height="8" fill="#111" stroke="#333" strokeWidth="0.2" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                                <text x={sector.x + 7} y={sector.y} fill="#aaa" fontSize="2" className="font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">RISK: {sector.risk}%</text>
+                                            </g>
+                                        );
+                                    })}
+                                </svg>
                             </div>
+                        </Box>
+
+                        <div className="w-80 flex flex-col gap-4">
+                            {tab === 'LABOR' ? (
+                                <Box title="GUILD_442_SURVEILLANCE" className="h-full" alert scroll>
+                                    <div className="space-y-4">
+                                        <div className="p-2 bg-red-950/20 border border-red-900/50 text-red-400 text-xs font-mono">
+                                            WARNING: ILLEGAL ASSEMBLY DETECTED IN SECTOR 7G
+                                        </div>
+                                        <div className="text-xs font-mono text-zinc-500">TRANSCRIPT LOG [AUDIO_ONLY]</div>
+                                        <div className="space-y-2 text-[10px] font-mono text-zinc-400 border-l border-zinc-800 pl-2">
+                                            <p><span className="text-zinc-600">TARGET_A:</span> "We can't meet the new quotas. It's physically impossible."</p>
+                                            <p><span className="text-zinc-600">TARGET_B:</span> "Kalen says we strike tomorrow. Before the new shift."</p>
+                                            <p><span className="text-zinc-600">TARGET_A:</span> "Did you see the new cameras? The ISB is watching."</p>
+                                            <p><span className="text-zinc-600">TARGET_B:</span> "Let them watch. They can't arrest all of us."</p>
+                                        </div>
+                                        <div className="h-px bg-zinc-800"></div>
+                                        <div className="flex justify-between text-[9px] text-zinc-500">
+                                            <span>SENTIMENT: HOSTILE</span>
+                                            <span>CONFIDENCE: 98%</span>
+                                        </div>
+                                        <Button alert className="w-full mt-2">FLAG FOR INTERVENTION</Button>
+                                    </div>
+                                </Box>
+                            ) : (
+                                <Box title="SECTOR_INTEL" className="h-full" scroll>
+                                    {selectedSector ? (
+                                        <div className="space-y-4 animate-fade-in">
+                                            <div>
+                                                <h2 className="text-xl font-header text-white mb-1">{selectedSector.name}</h2>
+                                                <div className="text-[9px] font-mono text-zinc-500">{selectedSector.id} // SECURE_GRID_4</div>
+                                            </div>
+                                            <div className="p-2 border border-zinc-800 bg-zinc-900/50">
+                                                <div className="text-[9px] font-mono text-zinc-500 uppercase mb-1">Status Report</div>
+                                                <p className="text-xs font-tech text-white leading-tight"><Typewriter text={selectedSector.detail} key={selectedSector.id} /></p>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>INSURGENCY RISK</span><span className={selectedSector.risk > 50 ? 'text-red-500' : 'text-zinc-400'}>{selectedSector.risk}%</span></div>
+                                                    <LoadingBar progress={selectedSector.risk} color={selectedSector.risk > 50 ? 'bg-red-600' : 'bg-green-600'} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>ECONOMIC OUTPUT</span><span className="text-zinc-400">{selectedSector.output}%</span></div>
+                                                    <LoadingBar progress={selectedSector.output} color="bg-amber-600" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex items-center justify-center text-center opacity-50">
+                                            <div className="space-y-2"><div className="text-4xl">⌖</div><div className="text-xs font-mono">SELECT SECTOR<br/>FOR ANALYSIS</div></div>
+                                        </div>
+                                    )}
+                                </Box>
+                            )}
                         </div>
                     </div>
                 </div>
             );
         };
 
-        const App = () => {
-            const [auth, setAuth] = useState(false);
-            const [tab, setTab] = useState('dashboard');
+        // --- ENCRYPTION MODULE ---
+        const Encryption = () => {
+            const [input, setInput] = useState('');
+            const [key, setKey] = useState('');
+            const [output, setOutput] = useState('');
+            const [mode, setMode] = useState('ENCRYPT'); // ENCRYPT or DECRYPT
+            const [isProcessing, setIsProcessing] = useState(false);
 
-            if (!auth) return <LoginScreen onLogin={() => setAuth(true)} />;
+            const handleProcess = () => {
+                if (!key || !input) { setOutput("ERROR: MISSING_INPUT_OR_KEY"); return; }
+                setIsProcessing(true); setOutput('');
+                setTimeout(() => {
+                    let result = "";
+                    const cleanInput = input.toUpperCase();
+                    const cleanKey = key.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    if (!cleanKey) { setOutput("ERROR: INVALID_KEY_FORMAT"); setIsProcessing(false); return; }
+                    for (let i = 0, j = 0; i < cleanInput.length; i++) {
+                        const char = cleanInput.charCodeAt(i);
+                        if (char >= 65 && char <= 90) {
+                            const keyChar = cleanKey.charCodeAt(j % cleanKey.length);
+                            const shift = keyChar - 65;
+                            if (mode === 'ENCRYPT') { result += String.fromCharCode(((char - 65 + shift) % 26) + 65); } 
+                            else { result += String.fromCharCode(((char - 65 - shift + 26) % 26) + 65); }
+                            j++;
+                        } else { result += cleanInput[i]; }
+                    }
+                    setOutput(result); setIsProcessing(false);
+                }, 800);
+            };
 
             return (
-                <div className="flex h-screen bg-black text-zinc-300 font-sans overflow-hidden relative selection:bg-red-900 selection:text-white">
-                    {/* Background Noise */}
-                    <div className="grid-bg absolute inset-0 opacity-20 pointer-events-none"></div>
-                    <div className="scanline"></div>
-
-                    {/* Sidebar */}
-                    <aside className="w-64 bg-zinc-950 border-r border-zinc-800 hidden md:flex flex-col relative z-20">
-                        <div className="p-6 border-b border-zinc-800">
-                            <div className="flex items-center gap-3 text-white mb-1">
-                                <Icon name="Shield" size={24} className="text-red-600" />
-                                <div>
-                                    <div className="font-display font-black text-xl tracking-widest leading-none">ISB</div>
-                                    <div className="font-mono text-[9px] text-zinc-500 tracking-[0.3em]">CENTRAL</div>
+                <div className="h-full flex items-center justify-center p-8">
+                    <Box title="SIGINT // CRYPTO_SUITE_V2" className="w-full max-w-4xl h-full" glowing>
+                        <div className="flex flex-col h-full gap-6">
+                            <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+                                <div className="flex gap-4">
+                                    <Button active={mode === 'ENCRYPT'} onClick={() => setMode('ENCRYPT')}>ENCRYPT_MODE</Button>
+                                    <Button active={mode === 'DECRYPT'} onClick={() => setMode('DECRYPT')} alert>DECRYPT_MODE</Button>
+                                </div>
+                                <div className="w-64">
+                                    <div className="text-[9px] font-mono text-zinc-500 uppercase mb-1">Encryption Key (Mandatory)</div>
+                                    <input type="text" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} className="w-full bg-zinc-900 border border-zinc-700 p-1 text-sm font-mono text-red-500 focus:outline-none focus:border-red-500 tracking-widest text-center" placeholder="ENTER_KEY_SEQUENCE" />
                                 </div>
                             </div>
+                            <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-mono text-zinc-500 uppercase">Input Data</label>
+                                    <textarea className="flex-1 bg-black border border-zinc-700 p-4 font-mono text-zinc-300 text-sm focus:border-white focus:outline-none resize-none placeholder-zinc-800" placeholder={mode === 'ENCRYPT' ? "ENTER CLEAR TEXT..." : "ENTER ENCRYPTED DATA..."} value={input} onChange={(e) => setInput(e.target.value)} spellCheck="false"></textarea>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-mono text-zinc-500 uppercase">Result Data</label>
+                                    <div className="flex-1 bg-zinc-900/50 border border-zinc-800 p-4 font-mono text-sm relative overflow-y-auto custom-scroll">
+                                        {isProcessing ? (<div className="absolute inset-0 flex items-center justify-center flex-col gap-4"><div className="w-12 h-12 border-t-2 border-r-2 border-white rounded-full animate-spin"></div><div className="text-[10px] text-zinc-500 animate-pulse tracking-widest">PROCESSING ALGORITHM...</div></div>) : (<div className="text-white break-all whitespace-pre-wrap tracking-wide">{output}</div>)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="pt-2 flex justify-center">
+                                <button onClick={handleProcess} disabled={isProcessing || !key} className={`px-12 py-3 text-sm font-header tracking-[0.3em] uppercase transition-all ${isProcessing || !key ? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed' : 'bg-white text-black hover:bg-zinc-200 border border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]'}`}>{isProcessing ? 'CALCULATING' : 'EXECUTE'}</button>
+                            </div>
                         </div>
-                        
-                        <nav className="flex-1 py-4 space-y-1">
-                            {[
-                                { id: 'dashboard', label: 'Command Deck', icon: 'Terminal' },
-                                { id: 'panopticon', label: 'Proj. Panopticon', icon: 'Eye' },
-                                { id: 'hok', label: 'Target: Hok', icon: 'Globe' },
-                                { id: 'dossiers', label: 'Personnel', icon: 'Users' },
-                                { id: 'archives', label: 'Archives', icon: 'FileText' },
-                            ].map(item => (
-                                <button 
-                                    key={item.id}
-                                    onClick={() => setTab(item.id)}
-                                    className={`w-full flex items-center gap-3 px-6 py-3 text-[10px] font-mono uppercase tracking-wider border-l-2 transition-all duration-200 group ${
-                                        tab === item.id 
-                                        ? 'border-red-600 bg-zinc-900 text-white' 
-                                        : 'border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30 hover:border-zinc-700'
-                                    }`}
-                                >
-                                    <Icon name={item.icon} size={14} className={`transition-colors ${tab === item.id ? "text-red-500" : "group-hover:text-zinc-400"}`} />
-                                    {item.label}
-                                </button>
+                    </Box>
+                </div>
+            );
+        };
+
+        // --- DASHBOARD (Main) ---
+        const Dashboard = () => {
+             const stabilityData = [75, 78, 80, 75, 72, 68, 65, 62, 58, 55, 60, 65, 70, 75, 80];
+             const resources = [
+                 { label: "Surveillance", val: 85 },
+                 { label: "Field Ops", val: 45 },
+                 { label: "R&D", val: 60 },
+                 { label: "Detention", val: 30 }
+             ];
+             
+             return (
+                <div className="h-full grid grid-cols-12 grid-rows-6 gap-4 animate-fade-in">
+                    <Box title="SYSTEM_METRICS" className="col-span-8 row-span-2">
+                        <div className="grid grid-cols-4 gap-4 h-full content-center">
+                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">89%</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Stability Index</div></div>
+                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-red-500 mb-1 animate-pulse">12</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Active Alerts</div></div>
+                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">94%</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Resource Output</div></div>
+                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">144</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Cycle Count</div></div>
+                        </div>
+                    </Box>
+                    
+                    <Box title="PRIORITY_FEED" className="col-span-4 row-span-6" alert scroll>
+                         <div className="space-y-3">
+                            {[{ src: "HOK", msg: "Labor strikes reported in Sector 7G. Mining Guild 442 claiming responsibility.", time: "00:02" }, { src: "CORUSCANT", msg: "Budget allocation for Project Panopticon approved by COMPNOR.", time: "01:15" }, { src: "KESSEL", msg: "Insurgency activity spike. 3 transports lost.", time: "02:30" }, { src: "SYS", msg: "Director Marus login detected. Biometrics confirmed.", time: "03:45" }, { src: "INTEL", msg: "New Republic fleet movement detected in Mid Rim.", time: "04:10" }, { src: "ALSAKAN", msg: "Civil unrest quelled. 45 detained.", time: "05:00" }, { src: "CORE", msg: "Grand Vizier requesting update on Panopticon.", time: "05:30" }].map((item, i) => (
+                                <div key={i} className="pb-2 border-b border-zinc-800/50"><div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>{item.src}</span><span>-{item.time}</span></div><div className="text-xs font-tech text-zinc-300 leading-tight">{item.msg}</div></div>
                             ))}
+                        </div>
+                    </Box>
+
+                    <Box title="STABILITY_TREND // 90_DAY_AGGREGATE" className="col-span-5 row-span-4 bg-zinc-900">
+                        <div className="w-full h-full p-4 relative"><LineChart data={stabilityData} /><div className="absolute top-2 right-2 text-[9px] text-zinc-500 font-mono">SECTOR STABILITY INDEX</div></div>
+                    </Box>
+                    
+                    <Box title="RESOURCE_ALLOCATION" className="col-span-3 row-span-4">
+                        <div className="h-full flex flex-col justify-around px-2">{resources.map((r, i) => (<div key={i} className="space-y-1"><div className="flex justify-between text-[9px] font-mono text-zinc-400"><span>{r.label}</span><span>{r.val}%</span></div><LoadingBar progress={r.val} color="bg-zinc-600" /></div>))}</div>
+                    </Box>
+                </div>
+            );
+        };
+
+        // --- PANOPTICON ---
+        const Panopticon = () => {
+             const [expanded, setExpanded] = useState('I');
+             const [tab, setTab] = useState('PHASES');
+             const [sim, setSim] = useState({ name: 'Subject 8821', risk: 12 });
+
+             useEffect(() => {
+                 if(tab !== 'ALGO') return;
+                 const interval = setInterval(() => { setSim({ name: `Subject ${Math.floor(Math.random()*9000)+1000}`, risk: Math.floor(Math.random() * 100) }); }, 2000);
+                 return () => clearInterval(interval);
+             }, [tab]);
+
+             const phases = [
+                { id: "I", title: "FOUNDATION", detail: "Data integration. Recruitment. Infrastructure Audit.", tasks: ["Recruit Local Personnel", "Inventory Assets", "Audit Civil Service", "Secure Kessler Authorization"] },
+                { id: "II", title: "INFRASTRUCTURE", detail: "Surveillance web deployment. 70% coverage target.", tasks: ["Deploy Camera Grid", "Install Bio-Scanners", "Activate Algorithm v4", "Establish Ops Center"] },
+                { id: "III", title: "OPERATIONS", detail: "Predictive intervention. Graduated pressure protocols.", tasks: ["Identify High-Risk Targets", "Begin Graduated Pressure", "Monitor Dissident Response", "Test Intervention Thresholds"] },
+                { id: "IV", title: "CONDITIONING", detail: "Behavioral modification. Systemic inevitability.", tasks: ["Full Social Integration", "Automated Sentencing", "Cultural Realignment", "Expansion Assessment"] }
+            ];
+
+            return (
+                <div className="h-full flex flex-col gap-6 animate-slide-in">
+                    <Box title="PROJECT_HEADER" className="shrink-0 p-6 flex justify-between items-center">
+                        <div><h1 className="text-4xl font-header text-white mb-2">PROJECT PANOPTICON</h1><p className="font-mono text-sm text-zinc-400 max-w-3xl">"A society that prioritizes privacy over security has chosen chaos over order."</p></div>
+                        <div className="text-right flex flex-col gap-2"><div className="text-xs font-mono text-zinc-500">TARGET: POPULATION_TYPE_C</div><div className="flex gap-2 justify-end"><Button active={tab === 'PHASES'} onClick={() => setTab('PHASES')}>PHASE_VIEW</Button><Button active={tab === 'ALGO'} onClick={() => setTab('ALGO')} alert>PREDICTIVE_MODEL</Button></div></div>
+                    </Box>
+
+                    <div className="flex-1 min-h-0 flex gap-6">
+                        {tab === 'PHASES' && (
+                            <>
+                            <Box title="PHASE_EXECUTOR" className="w-1/3" scroll>
+                                <div className="space-y-4">{phases.map((p) => (<div key={p.id} className="border border-zinc-800 bg-zinc-900/30"><button onClick={() => setExpanded(expanded === p.id ? null : p.id)} className="w-full p-4 flex justify-between items-center hover:bg-zinc-800 transition-colors"><span className="font-header text-lg text-white">PHASE {p.id} // {p.title}</span><span className="text-xs font-mono text-zinc-500">{expanded === p.id ? '[-]' : '[+]'}</span></button>{expanded === p.id && (<div className="p-4 border-t border-zinc-800 bg-zinc-950/50"><p className="text-xs font-mono text-zinc-400 mb-4">{p.detail}</p><div className="space-y-2">{p.tasks.map((t, i) => (<div key={i} className="flex items-center gap-3 text-xs font-mono text-zinc-500"><div className="w-3 h-3 border border-zinc-600"></div>{t}</div>))}</div></div>)}</div>))}</div>
+                            </Box>
+                            <div className="w-1/3 flex flex-col gap-4">
+                                <Box title="PSYCHOGRAPHIC_MODEL" className="h-1/2"><RadarChart /></Box>
+                                <Box title="IMPLEMENTATION_METRICS" className="h-1/2">
+                                    <div className="space-y-4 pt-2"><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Data Ingestion</span><span className="text-white">12TB/CYCLE</span></div><LoadingBar progress={88} color="bg-zinc-400" /><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Predictive Accuracy</span><span className="text-white">67%</span></div><LoadingBar progress={67} color="bg-amber-600" /><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Intervention Rate</span><span className="text-white">0.04%</span></div><LoadingBar progress={4} color="bg-red-600" /></div>
+                                </Box>
+                            </div>
+                            </>
+                        )}
+                        {tab === 'ALGO' && (
+                             <Box title="ALGORITHMIC_PROCESSING_UNIT" className="w-2/3" glowing>
+                                 <div className="h-full flex flex-col items-center justify-center"><div className="w-64 h-64 border-4 border-zinc-800 rounded-full flex items-center justify-center relative"><div className="absolute inset-0 border-2 border-red-900 rounded-full animate-ping opacity-20"></div><div className="text-center"><div className="text-xs font-mono text-zinc-500">ANALYZING</div><div className="text-2xl font-header text-white">{sim.name}</div><div className="text-4xl font-header mt-2" style={{color: sim.risk > 80 ? 'red' : sim.risk > 50 ? 'orange' : 'green'}}>{sim.risk}%</div><div className="text-[10px] font-mono text-zinc-500 mt-1">RISK QUOTIENT</div></div></div><div className="mt-8 grid grid-cols-3 gap-4 w-full px-8"><div className="p-2 border border-zinc-800 text-center"><div className="text-[9px] text-zinc-500">CREDIT SCORE</div><div className="text-white font-mono">FLAGGED</div></div><div className="p-2 border border-zinc-800 text-center"><div className="text-[9px] text-zinc-500">ASSOCIATIONS</div><div className="text-white font-mono">2 SUSPECTS</div></div><div className="p-2 border border-zinc-800 text-center"><div className="text-[9px] text-zinc-500">TRAVEL</div><div className="text-white font-mono">RESTRICTED</div></div></div></div>
+                             </Box>
+                        )}
+                        <div className="w-1/3 flex flex-col gap-6">
+                            <Box title="POLITICAL_OBSTACLE" alert fit>
+                                <div className="p-4"><div className="flex items-center gap-4 mb-4"><div className="w-12 h-12 bg-zinc-900 border border-red-900 flex items-center justify-center text-red-700 font-header text-xl">GK</div><div><div className="text-sm font-bold text-white uppercase">Grand Moff Kessler</div><div className="text-[10px] text-zinc-500">Reformist Faction Leader</div></div></div><p className="text-xs text-zinc-400 font-mono leading-tight">Advocates "Trust-Based Governance". Blocking expansion in Oversector 4. Strategy: Exploit labor unrest in Hok mining sector to justify intervention as "Infrastructure Security Audit".</p></div>
+                            </Box>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const Dossiers = () => {
+             const [selected, setSelected] = useState('krask');
+             const profiles = { krask: { name: "VALEN KRASK", rank: "DIRECTOR", unit: "ISB CENTRAL", bio: `Born 50 BBY, Alsakan. Nicknames: "The Physician", "The Surgeon". Approaches security as surgery: painful but necessary. Absolute certainty in moral correctness of authoritarian control. Unmarried. No children.`, activity: ["Authorized Panopticon Budget (10B CR)", "Meeting with T. Marus (0700)", "Reviewed Kessel Insurgency Report", "Denied expansion request for Sector 9"] }, marus: { name: "THANE MARUS", rank: "PROJECT DIRECTOR", unit: "PANOPTICON INITIATIVE", bio: `Deputy Director. Intelligent, pragmatic. Selected for flexibility. Questioned ethical implications of Panopticon but accepted the logic of "Freedom through Order". Family: Wife + 2 Children (Coruscant).`, activity: ["Accepted Hok Assignment", "Briefing with Tech Division", "Security Clearance Upgrade: Lvl 10", "Personal Log: Family Relocation?"] }, kessler: { name: "GARRIK KESSLER", rank: "GRAND MOFF", unit: "OVERSECTOR 4", bio: `Primary political obstacle. Reformist Faction Leader. Advocates "Trust-Based Governance". Believes heavy security creates resistance. Can block expansion in Oversector 4. Vulnerability: Economic output of Hok.`, activity: ["Submitted complaint re: ISB overreach", "Touring Mining District 7G", "Meeting with Ruling Council rep", "Denied automated surveillance permit"] } };
+            const data = profiles[selected];
+            return (
+                <div className="h-full flex gap-6 animate-slide-in">
+                    <div className="w-64 flex flex-col gap-2">{Object.entries(profiles).map(([key, p]) => (<button key={key} onClick={() => setSelected(key)} className={`p-4 border text-left transition-all ${selected === key ? 'bg-zinc-900 border-white' : 'bg-black border-zinc-800 hover:border-zinc-600'}`}><div className="text-[9px] font-mono text-zinc-500 uppercase">{p.rank}</div><div className="font-header text-lg text-white">{p.name}</div></button>))}</div>
+                    <Box title={`SUBJECT // ${data.name}`} className="flex-1" scroll><div className="grid grid-cols-2 gap-8"><div><div className="mb-6"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Biographical Summary</div><p className="font-mono text-sm text-zinc-300 leading-relaxed">{data.bio}</p></div><div className="p-4 border border-zinc-800 bg-zinc-900/30"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Psychometric Evaluation</div><div className="space-y-3"><div className="flex justify-between text-[10px] text-zinc-400"><span>LOYALTY</span><span>98%</span></div><LoadingBar progress={98} /><div className="flex justify-between text-[10px] text-zinc-400"><span>AGGRESSION</span><span>45%</span></div><LoadingBar progress={45} color="bg-zinc-600" /><div className="flex justify-between text-[10px] text-zinc-400"><span>CAPABILITY</span><span>92%</span></div><LoadingBar progress={92} color="bg-red-600" /></div></div></div><div><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2 border-b border-zinc-800 pb-1">Recent Activity Log</div><div className="space-y-2">{data.activity.map((act, i) => (<div key={i} className="flex gap-3 text-xs font-mono text-zinc-400"><span className="text-zinc-600">[-0{i}h]</span><span>{act}</span></div>))}</div></div></div></Box>
+                </div>
+            );
+        };
+
+        const Archives = () => {
+            const logs = [
+                { id: "LOG-0547", date: "5 ABY // 05:47", title: "Morning Reflection", text: "The city transitions from night to day. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure. Order requires vigilance. The Ivory Tower stands as a monument to that vigilance." },
+                { id: "LOG-0700", date: "5 ABY // 07:00", title: "Meeting: Marus / Panopticon", text: "Marus is skeptical but obedient. I showed him the 'Comprehensive Social Equilibrium Initiative'. He called it ambitious. He asked about the privacy implications. I told him privacy is a luxury the Empire cannot afford. We are building systematic inevitability." },
+                { id: "LOG-0746", date: "5 ABY // 07:46", title: "Strategy: The Kessler Maneuver", text: "Marus identified the risk: Grand Moff Kessler. I explained the strategy. We frame Panopticon as 'Infrastructure Security Audit'. We use the labor unrest on Hok—which Kessler is responsible for—as the pretext. He cannot refuse security upgrades without appearing negligent to the Ruling Council." },
+                { id: "LOG-19BBY", date: "19 BBY // ARCHIVE", title: "The Mother Incident", text: "Lyssa Krask. History teacher. Couldn't adapt to the New Order. I reviewed her file myself. Recommended 'ideological counseling' rather than detention. Three months re-education. She never spoke to me again. I showed mercy. I chose the minimal intervention necessary. I am a surgeon." },
+                { id: "LOG-21BBY", date: "21 BBY // ARCHIVE", title: "Refugee Crisis Management", text: "Refugee populations are security vulnerabilities. Compassion that compromises security is not compassion, it's negligence. We screen rigorously or we create opportunities for infiltration. Every refugee could potentially be a spy. I would rather detain a thousand innocent people than let one saboteur through." },
+                { id: "LOG-04ABY", date: "4 ABY // POST-ENDOR", title: "The Crisis of Authority", text: "The Emperor is dead. The mechanism is broken. Without him, we have institutions, yes, but we lack the unifying force. We must create different capabilities. Institutional rather than personal. Systematic rather than charismatic. The ISB must become the nervous system that keeps the corpse walking." }
+            ];
+            return (
+                <div className="h-full flex gap-6 animate-slide-in">
+                    <Box title="LOG_INDEX" className="w-1/3" scroll><div className="space-y-2">{logs.map((log) => (<div key={log.id} className="p-3 border border-zinc-800 hover:bg-zinc-900 hover:border-zinc-600 transition-all cursor-pointer group"><div className="flex justify-between items-center mb-1"><span className="text-[10px] font-mono text-red-500">{log.id}</span><span className="text-[9px] text-zinc-600">{log.date.split('//')[0]}</span></div><div className="text-sm font-tech text-zinc-300 group-hover:text-white">{log.title}</div></div>))}</div></Box>
+                    <Box title="CONTENT_VIEWER" className="flex-1" scroll><div className="space-y-8 pr-4">{logs.map((log) => (<div key={log.id} className="pb-8 border-b border-zinc-800 last:border-0"><div className="flex items-center gap-4 mb-4"><div className="px-2 py-1 bg-zinc-900 border border-zinc-700 text-[10px] font-mono text-zinc-400">{log.id}</div><div className="text-xs font-mono text-zinc-500 uppercase">{log.date}</div></div><h3 className="text-lg font-header text-white mb-2 uppercase tracking-wide">{log.title}</h3><p className="font-mono text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{log.text}</p></div>))}</div></Box>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // APP SHELL
+        // ==========================================
+
+        const App = () => {
+            const [view, setView] = useState('dashboard');
+            const [booted, setBooted] = useState(false);
+            const [loginStep, setLoginStep] = useState(0);
+
+            const handleLogin = () => {
+                if (loginStep === 0) { setLoginStep(1); setTimeout(() => setLoginStep(2), 1500); setTimeout(() => setLoginStep(3), 3000); }
+            };
+
+            if (loginStep < 3) {
+                return (
+                    <div className="h-screen w-screen bg-black flex items-center justify-center relative overflow-hidden cursor-pointer" onClick={handleLogin}>
+                         <div className="crt-overlay"></div><div className="scanline"></div>
+                         <div className="relative z-20 text-center flex flex-col items-center gap-6">
+                            <div className="border-4 border-white p-2 mb-4"><div className="border border-white p-8"><h1 className="text-8xl font-header text-white tracking-[0.2em] text-glow">ISB</h1></div></div>
+                            <div className="h-12 flex items-center justify-center w-64">
+                                {loginStep === 0 && <div className="animate-pulse text-sm font-mono text-zinc-500 tracking-widest cursor-blink">[ INSERT CYLINDER ]</div>}
+                                {loginStep === 1 && <div className="text-red-500 font-mono text-xs tracking-widest">READING BIOMETRICS...</div>}
+                                {loginStep === 2 && (<div className="w-full"><div className="text-xs font-mono text-zinc-400 mb-2 text-left">DECRYPTING KEY...</div><LoadingBar progress={100} color="bg-white" height="h-2" animated /></div>)}
+                            </div>
+                         </div>
+                         <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+                    </div>
+                );
+            }
+
+            const NAV = [
+                { id: 'dashboard', label: 'CMD_DECK', icon: 'GRID' },
+                { id: 'panopticon', label: 'PRJ_PANOPTICON', icon: 'EYE' },
+                { id: 'hok', label: 'SEC_VIEW_HOK', icon: 'MAP' },
+                { id: 'logistics', label: 'LOGISTICS', icon: 'BOX' },
+                { id: 'network', label: 'NETWORK_GRPH', icon: 'NET' },
+                { id: 'dossiers', label: 'DOSSIERS', icon: 'USER' },
+                { id: 'encryption', label: 'ENCRYPTION', icon: 'LOCK' },
+                { id: 'archives', label: 'ARCHIVES', icon: 'FILE' }
+            ];
+
+            return (
+                <div className="h-screen w-screen bg-black text-white flex flex-col overflow-hidden relative selection:bg-red-900 selection:text-white">
+                    <div className="crt-overlay"></div><div className="scanline"></div><div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+                    <header className="h-16 shrink-0 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-6 relative z-30">
+                        <div className="flex items-center gap-4"><div className="w-8 h-8 border border-white flex items-center justify-center font-header text-xl bg-white text-black">ISB</div><div><h1 className="text-xl font-header tracking-widest text-white leading-none">{LORE.director}</h1><div className="text-[9px] font-mono text-zinc-500 tracking-[0.2em]">{LORE.id} // {LORE.clearance}</div></div></div>
+                        <div className="hidden lg:block text-[10px] font-mono text-zinc-600 tracking-[0.3em] opacity-50">"{LORE.quote}"</div>
+                        <div className="flex items-center gap-8"><div className="hidden md:block text-right"><div className="text-[10px] font-mono text-red-500 tracking-widest animate-pulse">SECURE UPLINK ACTIVE</div><div className="text-[9px] font-mono text-zinc-600">{LORE.location}</div></div><div className="text-right"><div className="text-xl font-mono-bold text-white leading-none">0547</div><div className="text-[10px] font-mono text-zinc-500">CYCLE 144</div></div></div>
+                    </header>
+                    <div className="flex-1 flex overflow-hidden relative z-20">
+                        <nav className="w-16 md:w-64 shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col">
+                            <div className="flex-1 py-6 flex flex-col gap-1">
+                                {NAV.map((item) => (
+                                    <button key={item.id} onClick={() => setView(item.id)} className={`group relative px-6 py-3 text-left transition-all duration-200 flex items-center gap-4 hover:bg-zinc-900 ${view === item.id ? 'border-r-2 border-white bg-zinc-900' : 'border-r-2 border-transparent'}`}>
+                                        <div className={`text-lg transition-colors ${view === item.id ? 'text-red-500' : 'text-zinc-600 group-hover:text-zinc-400'}`}>
+                                            {item.icon === 'GRID' && '⊞'} {item.icon === 'EYE' && '◉'} {item.icon === 'MAP' && '⌖'} {item.icon === 'USER' && '♟'} {item.icon === 'LOCK' && '⚿'} {item.icon === 'FILE' && '≡'} {item.icon === 'BOX' && '◫'} {item.icon === 'NET' && '☊'}
+                                        </div>
+                                        <span className={`hidden md:block text-xs font-tech tracking-wider uppercase ${view === item.id ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>{item.label}</span>
+                                    </button>
+                                ))}
+                            </div>
                         </nav>
-
-                        <div className="p-4 border-t border-zinc-800 bg-zinc-900/10">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 bg-zinc-900 border border-zinc-700 flex items-center justify-center rounded-sm">
-                                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></div>
-                                </div>
-                                <div>
-                                    <div className="text-white font-mono text-[10px] font-bold">DIR. KRASK</div>
-                                    <div className="text-[8px] text-zinc-600 font-mono">ID: ISB-ALPHA-1</div>
-                                </div>
+                        <main className="flex-1 bg-black p-6 md:p-8 overflow-hidden flex flex-col relative">
+                            <div className="flex-1 min-h-0 relative">
+                                {view === 'dashboard' && <Dashboard />}
+                                {view === 'panopticon' && <Panopticon />}
+                                {view === 'hok' && <InteractiveMap />}
+                                {view === 'encryption' && <Encryption />}
+                                {view === 'archives' && <Archives />}
+                                {view === 'dossiers' && <Dossiers />}
+                                {view === 'network' && <NetworkAnalysis />}
+                                {view === 'logistics' && <Logistics />}
                             </div>
-                            <button onClick={() => setAuth(false)} className="w-full border border-zinc-800 text-[9px] font-mono text-zinc-600 hover:text-red-500 hover:border-red-900 py-1.5 transition-colors uppercase tracking-widest bg-black">
-                                Eject Cylinder
-                            </button>
-                        </div>
-                    </aside>
-
-                    {/* Main Content */}
-                    <main className="flex-1 flex flex-col relative overflow-hidden bg-black/80 backdrop-blur-sm">
-                        
-                        {/* Top Bar */}
-                        <header className="h-14 border-b border-zinc-800 flex items-center justify-between px-8 bg-zinc-950/80 backdrop-blur-md z-10 shrink-0">
-                            <div className="font-mono text-[10px] text-red-600 tracking-[0.2em] flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 bg-red-600 animate-pulse rounded-full"></div>
-                                SECURE UPLINK ESTABLISHED
-                            </div>
-                            <div className="hidden md:flex gap-6 text-[9px] font-mono text-zinc-600 uppercase tracking-wider">
-                                <span className="flex items-center gap-2"><div className="w-1 h-1 bg-green-600 rounded-full"></div> Encryption: AES-ROT-256</span>
-                                <span>Bandwidth: 98%</span>
-                                <span>Node: Coruscant-Tower-225</span>
-                            </div>
-                        </header>
-
-                        {/* Content Area */}
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scroll relative">
-                            <div className="max-w-6xl mx-auto pb-10">
-                                {tab === 'dashboard' && <Dashboard />}
-                                {tab === 'panopticon' && <Panopticon />}
-                                {tab === 'hok' && <TargetHok />}
-                                {tab === 'dossiers' && <Dossiers />}
-                                {tab === 'archives' && <Archives />}
-                            </div>
-                        </div>
-                    </main>
+                        </main>
+                    </div>
+                    <div className="h-6 bg-zinc-900 border-t border-zinc-800 flex items-center overflow-hidden relative z-30">
+                        <div className="px-4 text-[9px] font-mono text-red-500 bg-zinc-950 border-r border-zinc-800 h-full flex items-center z-10 shrink-0">ALERT FEED</div>
+                        <div className="ticker-content whitespace-nowrap text-[9px] font-mono text-zinc-500 flex gap-12 px-4"><span>/// KESSEL UPRISING CONTAINMENT FAILED ///</span><span>/// NEW REPUBLIC FLEET SIGHTED IN SECTOR 5 ///</span><span>/// DIRECTOR KRASK APPROVES BUDGET INCREASE ///</span><span>/// HOK MINING GUILD DECLARED UNLAWFUL ASSEMBLY ///</span><span>/// GRAND MOFF KESSLER REQUESTS AUDIENCE ///</span><span>/// COMPNOR REVIEW PENDING ///</span></div>
+                    </div>
                 </div>
             );
         };

@@ -90,7 +90,7 @@
 
         /* Animations */
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .ticker-content { animation: ticker 40s linear infinite; }
+        .ticker-content { animation: ticker 60s linear infinite; }
         
         .cursor-blink::after { content: '█'; animation: blink 1s step-end infinite; color: var(--imp-red); margin-left: 4px; }
         @keyframes blink { 50% { opacity: 0; } }
@@ -100,6 +100,11 @@
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--imp-white); cursor: pointer; margin-top: -6px; border: 1px solid #000; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #333; }
         input[type=range]:focus { outline: none; }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-slide-in { animation: slideIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -116,19 +121,20 @@
             director: "DIRECTOR VALEN KRASK",
             id: "ISB-CEN-001",
             clearance: "CLE-10 // IMPERIAL EYES ONLY",
-            location: "ISB CENTRAL TOWER // CORUSCANT",
+            location: "ISB CENTRAL TOWER // CORUSCANT // 'THE IVORY TOWER'",
             date: "5 ABY // CYCLE 144",
-            project: "PANOPTICON",
+            project: "COMPREHENSIVE SOCIAL EQUILIBRIUM",
+            code: "PANOPTICON",
             target: "HOK (OVERSECTOR 4)",
-            quote: "ORDER IS MERCY. CHAOS IS CRUELTY."
+            motto: "ORDER IS MERCY. CHAOS IS CRUELTY."
         };
 
         const SECTORS = [
-            { id: 'MINING', name: 'MINING DISTRICT 7G', x: 20, y: 30, risk: 92, output: 45, detail: "Labor Strike Imminent. Guild 442 Activity." },
-            { id: 'IND', name: 'INDUSTRIAL CORE', x: 45, y: 50, risk: 60, output: 95, detail: "Refinery output nominal. Shift quotas increased." },
-            { id: 'GOV', name: 'ADMINISTRATIVE ZONE', x: 70, y: 30, risk: 15, output: 100, detail: "Grand Moff Kessler's residence. High security." },
-            { id: 'PORT', name: 'SPACEPORT ALPHA', x: 60, y: 70, risk: 75, output: 80, detail: "Smuggling vectors identified. Cargo checks failing." },
-            { id: 'EDU', name: 'UNIVERSITY DISTRICT', x: 30, y: 60, risk: 55, output: 20, detail: "Ideological drift detected. History Dept. flagged." }
+            { id: 'MINING', name: 'MINING DISTRICT 7G', x: 20, y: 30, risk: 92, output: 45, detail: "Guild 442 Strike imminent. Leader 'Kalen' flagged for behavioral review." },
+            { id: 'IND', name: 'INDUSTRIAL CORE', x: 45, y: 50, risk: 60, output: 95, detail: "Refinery output nominal. Quota pressures increasing stress metrics." },
+            { id: 'GOV', name: 'ADMINISTRATIVE ZONE', x: 70, y: 30, risk: 15, output: 100, detail: "Grand Moff Kessler's residence. High security. Reformist stronghold." },
+            { id: 'PORT', name: 'SPACEPORT ALPHA', x: 60, y: 70, risk: 75, output: 80, detail: "Smuggling vectors identified. Cargo checks failing due to bribery." },
+            { id: 'EDU', name: 'UNIVERSITY DISTRICT', x: 30, y: 60, risk: 55, output: 20, detail: "Ideological drift detected. History Dept. professors under surveillance." }
         ];
 
         // ==========================================
@@ -168,9 +174,10 @@
             </div>
         );
 
-        const Button = ({ children, onClick, active = false, alert = false, className = "" }) => (
+        const Button = ({ children, onClick, active = false, alert = false, className = "", disabled = false }) => (
             <button 
                 onClick={onClick}
+                disabled={disabled}
                 className={`
                     relative px-3 py-1.5 text-[10px] font-tech uppercase tracking-wider transition-all duration-200
                     border focus:outline-none flex items-center justify-center gap-2
@@ -178,6 +185,7 @@
                         ? (alert ? 'bg-red-950/60 border-red-500 text-red-500' : 'bg-zinc-800 border-zinc-400 text-white') 
                         : (alert ? 'border-red-900/50 text-red-900 hover:border-red-500 hover:text-red-500' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600')
                     }
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                     ${className}
                 `}
             >
@@ -185,7 +193,7 @@
             </button>
         );
 
-        const Typewriter = ({ text, speed = 10 }) => {
+        const Typewriter = ({ text, speed = 10, onComplete }) => {
             const [display, setDisplay] = useState('');
             useEffect(() => {
                 setDisplay('');
@@ -194,35 +202,14 @@
                     if (i < text.length) {
                         setDisplay(prev => prev + text.charAt(i));
                         i++;
-                    } else clearInterval(timer);
+                    } else {
+                        clearInterval(timer);
+                        if(onComplete) onComplete();
+                    }
                 }, speed);
                 return () => clearInterval(timer);
             }, [text, speed]);
             return <span>{display}</span>;
-        };
-
-        const LineChart = ({ data, color = "#b91c1c" }) => {
-            const max = Math.max(...data);
-            const min = Math.min(...data);
-            const points = data.map((d, i) => {
-                const x = (i / (data.length - 1)) * 100;
-                const y = 100 - ((d - min) / (max - min || 1)) * 80 - 10;
-                return `${x},${y}`;
-            }).join(" ");
-
-            return (
-                <div className="w-full h-full relative">
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-                        <polyline points={points} fill="none" stroke={color} strokeWidth="2" vectorEffect="non-scaling-stroke" />
-                        {data.map((d, i) => {
-                             const x = (i / (data.length - 1)) * 100;
-                             const y = 100 - ((d - min) / (max - min || 1)) * 80 - 10;
-                             return <circle key={i} cx={x} cy={y} r="1.5" fill={color} />
-                        })}
-                    </svg>
-                    <div className="absolute inset-0 border-b border-l border-zinc-800 opacity-50"></div>
-                </div>
-            );
         };
 
         const RadarChart = () => {
@@ -247,18 +234,220 @@
         // PAGE MODULES
         // ==========================================
 
-        // --- INTERACTIVE NETWORK GRAPH ---
+        // --- NEW MODULE: BEHAVIORAL MODIFICATION ("THE PHYSICIAN") ---
+        const BehavioralMod = () => {
+            const [subject, setSubject] = useState(null);
+            const [step, setStep] = useState('SELECT'); // SELECT, ANALYZE, INTERVENE, RESULT
+            const [intervention, setIntervention] = useState(null);
+
+            const subjects = [
+                { id: 'SUB-892', name: 'PROF. J. CORRAN', role: 'History Dept. Head', risk: 65, traits: ['Nostalgic', 'Influential', 'Tenure'], status: 'ACTIVE' },
+                { id: 'SUB-441', name: 'KALEN VOS', role: 'Guild 442 Lead', risk: 92, traits: ['Charismatic', 'Volatile', 'Connected'], status: 'ACTIVE' },
+                { id: 'SUB-112', name: 'ADM. T. RANE', role: 'Port Authority', risk: 45, traits: ['Corrupt', 'Greedy', 'Cowardly'], status: 'ACTIVE' }
+            ];
+
+            const interventions = [
+                { id: 'ECO', name: 'ECONOMIC PRESSURE', desc: 'Restrict credit. Deny grants. Create bureaucratic debt.', cost: 'LOW', impact: 'SUBTLE' },
+                { id: 'SOC', name: 'SOCIAL ISOLATION', desc: 'Fabricate rumors. Distance colleagues. Algorithmically suppress comms.', cost: 'MED', impact: 'MODERATE' },
+                { id: 'DET', name: 'PREVENTIVE DETENTION', desc: 'Immediate extraction. Enhanced interrogation.', cost: 'HIGH', impact: 'SEVERE' }
+            ];
+
+            const handleIntervene = (type) => {
+                setIntervention(type);
+                setStep('RESULT');
+            };
+
+            const reset = () => {
+                setSubject(null);
+                setStep('SELECT');
+                setIntervention(null);
+            }
+
+            return (
+                <div className="h-full flex gap-6 animate-slide-in">
+                    <div className="w-1/3 flex flex-col gap-4">
+                        <Box title="SUBJECT_QUEUE" className="flex-1" scroll>
+                            <div className="space-y-2">
+                                {subjects.map(s => (
+                                    <button 
+                                        key={s.id} 
+                                        onClick={() => { setSubject(s); setStep('ANALYZE'); }}
+                                        className={`w-full text-left p-3 border transition-all ${subject?.id === s.id ? 'bg-white text-black border-white' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-500 text-zinc-400'}`}
+                                    >
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-header text-lg">{s.name}</span>
+                                            <span className={`text-xs font-mono ${s.risk > 80 ? 'text-red-500' : 'text-amber-500'}`}>{s.risk}% RISK</span>
+                                        </div>
+                                        <div className="text-[10px] font-mono opacity-70">{s.role}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </Box>
+                        <Box title="DOCTRINE" className="h-1/3 p-4">
+                            <div className="text-xs font-mono text-zinc-400 italic">"We do not wait for the disease to kill the patient. We intervene early. We treat the symptom before it becomes a condition."</div>
+                            <div className="text-[10px] font-mono text-zinc-600 mt-2 text-right">- THE PHYSICIAN</div>
+                        </Box>
+                    </div>
+
+                    <div className="flex-1">
+                        <Box title="INTERVENTION_CONSOLE" className="h-full" glowing={step === 'ANALYZE'}>
+                            {step === 'SELECT' && (
+                                <div className="h-full flex items-center justify-center opacity-50">
+                                    <div className="text-center">
+                                        <div className="text-4xl mb-2">⚕</div>
+                                        <div className="text-xs font-mono tracking-widest">SELECT PATIENT FOR EVALUATION</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 'ANALYZE' && subject && (
+                                <div className="h-full flex flex-col animate-fade-in">
+                                    <div className="flex justify-between items-start mb-6 border-b border-zinc-800 pb-4">
+                                        <div>
+                                            <div className="text-xs font-mono text-zinc-500">SUBJECT ID: {subject.id}</div>
+                                            <div className="text-3xl font-header text-white">{subject.name}</div>
+                                            <div className="text-sm font-mono text-red-400">{subject.role}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-4xl font-header text-red-500">{subject.risk}%</div>
+                                            <div className="text-[9px] font-mono text-zinc-500">THREAT INDEX</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4 mb-8">
+                                        {subject.traits.map(t => (
+                                            <div key={t} className="p-2 border border-zinc-700 bg-zinc-900 text-center text-xs font-mono text-zinc-300">{t}</div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <div className="text-xs font-mono text-zinc-500 uppercase mb-4">Select Treatment Protocol</div>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {interventions.map(int => (
+                                                <button 
+                                                    key={int.id}
+                                                    onClick={() => handleIntervene(int)}
+                                                    className="group flex items-center justify-between p-4 border border-zinc-800 hover:border-red-500 hover:bg-red-950/20 transition-all text-left"
+                                                >
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white group-hover:text-red-400">{int.name}</div>
+                                                        <div className="text-[10px] font-mono text-zinc-500">{int.desc}</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-[9px] font-mono text-zinc-400">COST: {int.cost}</div>
+                                                        <div className="text-[9px] font-mono text-zinc-400">IMPACT: {int.impact}</div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 'RESULT' && intervention && (
+                                <div className="h-full flex flex-col items-center justify-center text-center animate-fade-in">
+                                    <div className="w-16 h-16 border-2 border-red-500 rounded-full flex items-center justify-center mb-4">
+                                        <div className="w-12 h-12 bg-red-500 rounded-full animate-pulse"></div>
+                                    </div>
+                                    <h3 className="text-xl font-header text-white mb-2">INTERVENTION AUTHORIZED</h3>
+                                    <div className="text-sm font-mono text-zinc-300 mb-6 max-w-md">
+                                        Protocol <span className="text-red-400">{intervention.name}</span> initiated against {subject.name}. 
+                                        {intervention.id === 'ECO' && " Subject's credit rating downgraded. Grants revoked."}
+                                        {intervention.id === 'SOC' && " Isolation algorithms active. Peer distancing expected within 48 hours."}
+                                        {intervention.id === 'DET' && " Extraction team dispatched. Cover story: 'Medical Emergency'."}
+                                    </div>
+                                    <Button onClick={reset}>PROCESS NEXT SUBJECT</Button>
+                                </div>
+                            )}
+                        </Box>
+                    </div>
+                </div>
+            )
+        }
+
+        // --- NEW MODULE: SECURE COMMS ---
+        const SecureComms = () => {
+            const [messages, setMessages] = useState([
+                { id: 1, sender: 'MARUS', text: "Director, initial deployment on Hok is complete. However, Kessler's office is blocking our sensor grid installation in the Mining District.", type: 'in' }
+            ]);
+            const [options, setOptions] = useState([
+                { id: 'A', text: "Frame it as a safety audit. Use the recent guild strikes as pretext.", strategy: "SUBTLE" },
+                { id: 'B', text: "Override him using Article 4 emergency powers.", strategy: "AGGRESSIVE" }
+            ]);
+            const [typing, setTyping] = useState(false);
+
+            const handleReply = (option) => {
+                setMessages(prev => [...prev, { id: Date.now(), sender: 'KRASK', text: option.text, type: 'out' }]);
+                setOptions([]);
+                setTyping(true);
+
+                setTimeout(() => {
+                    let reply = "";
+                    if (option.strategy === "SUBTLE") {
+                        reply = "Understood. Framing as 'Infrastructure Safety Audit'. Kessler will have a hard time refusing without appearing negligent given the unrest. Proceeding.";
+                    } else {
+                        reply = "Risky. Kessler has allies on the Ruling Council. But if you insist... I will attempt to muscle it through. Expect political blowback.";
+                    }
+                    setMessages(prev => [...prev, { id: Date.now()+1, sender: 'MARUS', text: reply, type: 'in' }]);
+                    setTyping(false);
+                }, 2000);
+            };
+
+            return (
+                <div className="h-full flex flex-col animate-slide-in p-4 max-w-4xl mx-auto">
+                    <Box title="ENCRYPTED_CHANNEL // MARUS_DIRECT" className="flex-1 mb-4" scroll glowing>
+                        <div className="space-y-4">
+                            {messages.map(msg => (
+                                <div key={msg.id} className={`flex ${msg.type === 'out' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] p-3 border ${msg.type === 'out' ? 'bg-zinc-900 border-zinc-700' : 'bg-red-950/20 border-red-900/50'}`}>
+                                        <div className="text-[9px] font-mono mb-1 opacity-50">{msg.sender} // {new Date().toLocaleTimeString()}</div>
+                                        <div className="text-sm font-mono text-white leading-relaxed">{msg.text}</div>
+                                    </div>
+                                </div>
+                            ))}
+                            {typing && (
+                                <div className="flex justify-start">
+                                    <div className="text-xs font-mono text-zinc-500 animate-pulse">MARUS IS TYPING...</div>
+                                </div>
+                            )}
+                        </div>
+                    </Box>
+                    <div className="h-32">
+                        {options.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-4 h-full">
+                                {options.map(opt => (
+                                    <button 
+                                        key={opt.id}
+                                        onClick={() => handleReply(opt)}
+                                        className="border border-zinc-600 hover:bg-white hover:text-black hover:border-white transition-all p-4 text-left group h-full flex flex-col justify-center"
+                                    >
+                                        <div className="text-[10px] font-mono uppercase mb-2 text-zinc-500 group-hover:text-zinc-800">Option {opt.id}</div>
+                                        <div className="text-sm font-header tracking-wide">{opt.text}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="h-full border border-zinc-800 flex items-center justify-center text-zinc-600 font-mono text-xs">
+                                // AWAITING RESPONSE...
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )
+        }
+
+        // --- INTERACTIVE NETWORK GRAPH (Existing but Refined) ---
         const NetworkAnalysis = () => {
             const [selectedNode, setSelectedNode] = useState(null);
             const [filters, setFilters] = useState({ COMMAND: true, CONFLICT: true, SURV: true });
 
             const nodes = [
-                { id: 'KRASK', label: 'DIR. KRASK', x: 50, y: 15, type: 'director', desc: 'Central Authority. ISB Directorate.' },
-                { id: 'MARUS', label: 'DIR. MARUS', x: 30, y: 40, type: 'asset', desc: 'Project Panopticon Lead. Deployed to Hok.' },
-                { id: 'KESSLER', label: 'G.M. KESSLER', x: 70, y: 40, type: 'target', desc: 'Political Obstacle. Reformist Leader.' },
+                { id: 'KRASK', label: 'DIR. KRASK', x: 50, y: 15, type: 'director', desc: 'Central Authority. ISB Directorate. "The Physician".' },
+                { id: 'MARUS', label: 'DIR. MARUS', x: 30, y: 40, type: 'asset', desc: 'Project Panopticon Lead. Pragmatic. Family on Coruscant.' },
+                { id: 'KESSLER', label: 'G.M. KESSLER', x: 70, y: 40, type: 'target', desc: 'Political Obstacle. Reformist Leader. Controls Hok.' },
                 { id: 'MINING', label: 'GUILD 442', x: 70, y: 70, type: 'target', desc: 'Labor Force. High Unrest. Strike Risk.' },
                 { id: 'REBELS', label: 'CELL AUREK', x: 20, y: 80, type: 'threat', desc: 'Insurgency detected. Funding Mining Guild.' },
-                { id: 'COMPNOR', label: 'COMPNOR', x: 80, y: 20, type: 'political', desc: 'Political Backing. Budget Source.' },
+                { id: 'COMPNOR', label: 'COMPNOR', x: 80, y: 20, type: 'political', desc: 'Political Backing. Budget Source. Ideological Hardliners.' },
                 { id: 'UNI', label: 'UNI. HOK', x: 40, y: 60, type: 'surv', desc: 'Academic Dissidents. Monitored.' }
             ];
 
@@ -332,7 +521,6 @@
                         </Box>
                     </div>
 
-                    {/* Detail Sidebar */}
                     <div className="w-80 flex flex-col gap-4">
                         <Box title="NODE_INTEL" className="h-2/3" scroll>
                              {selectedNode ? (
@@ -354,13 +542,6 @@
                                             </div>
                                         ))}
                                     </div>
-
-                                    {selectedNode.type === 'target' && (
-                                        <div className="p-2 bg-red-950/20 border border-red-900/50 mt-4">
-                                            <div className="text-red-500 text-[9px] font-bold uppercase mb-1">Tactical Recommendation</div>
-                                            <div className="text-xs text-zinc-300">Increase surveillance pressure. Identify weak points in support structure.</div>
-                                        </div>
-                                    )}
                                  </div>
                              ) : (
                                  <div className="h-full flex items-center justify-center text-center opacity-50">
@@ -371,24 +552,12 @@
                                  </div>
                              )}
                         </Box>
-                         <Box title="INTERCEPTS" className="h-1/3" alert scroll>
-                             <div className="space-y-2 text-[10px] font-mono">
-                                <div className="text-zinc-500 border-b border-zinc-800 pb-1">/// LIVE FEED ///</div>
-                                <div className="text-zinc-400">SRC: UNKNOWN (Mid Rim)</div>
-                                <div className="text-zinc-400">DEST: MINING GUILD 442</div>
-                                <div className="text-red-400 break-all">HASH: 883-992-AX-11</div>
-                                <div className="text-zinc-600 mt-1">Attempting decryption... Failed. Rotating keys.</div>
-                                <div className="mt-2 text-zinc-400">SRC: COMPNOR</div>
-                                <div className="text-zinc-400">DEST: KRASK</div>
-                                <div className="text-zinc-300">MSG: "Budget approved."</div>
-                             </div>
-                        </Box>
                     </div>
                 </div>
             )
         }
 
-        // --- INTERACTIVE LOGISTICS ---
+        // --- INTERACTIVE LOGISTICS (Enhanced with Layers) ---
         const Logistics = () => {
             const [budget, setBudget] = useState({ surv: 60, field: 30, rd: 10 });
             const [assets, setAssets] = useState([
@@ -400,99 +569,61 @@
             ]);
             const [selectedAsset, setSelectedAsset] = useState(null);
 
-            const totalBudget = 100;
-            const usedBudget = budget.surv + budget.field + budget.rd;
-            
-            // Simulation Metrics based on budget
             const stability = Math.min(100, Math.floor((budget.surv * 0.8) + (budget.field * 0.5)));
             const fear = Math.min(100, Math.floor((budget.field * 1.2) + (budget.surv * 0.2)));
             
             const handleBudgetChange = (type, val) => {
-                // Simple logic to prevent going over 100 (rough UX)
                 const newVal = parseInt(val);
                 setBudget(prev => ({ ...prev, [type]: newVal }));
             };
 
             return (
                 <div className="h-full flex gap-6 animate-slide-in">
-                    {/* Resource Allocation Panel */}
                     <div className="w-1/2 flex flex-col gap-6">
                         <Box title="RESOURCE_ALLOCATION_MATRIX" className="flex-1">
                             <div className="p-6 space-y-8">
                                 <div>
                                     <div className="flex justify-between mb-2 font-header text-xl text-white">
-                                        <span>SURVEILLANCE</span>
+                                        <span>LAYER 1: DATA COLLECTION</span>
                                         <span>{budget.surv}%</span>
                                     </div>
-                                    <input 
-                                        type="range" min="0" max="100" value={budget.surv} 
-                                        onChange={(e) => handleBudgetChange('surv', e.target.value)} 
-                                        className="w-full"
-                                    />
-                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Increases detection rate. Lowers privacy.</div>
+                                    <input type="range" min="0" max="100" value={budget.surv} onChange={(e) => handleBudgetChange('surv', e.target.value)} className="w-full" />
+                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Increases detection. Lowers privacy.</div>
                                 </div>
 
                                 <div>
                                     <div className="flex justify-between mb-2 font-header text-xl text-white">
-                                        <span>FIELD OPERATIONS</span>
+                                        <span>LAYER 2: PREDICTIVE INTERVENTION</span>
                                         <span>{budget.field}%</span>
                                     </div>
-                                    <input 
-                                        type="range" min="0" max="100" value={budget.field} 
-                                        onChange={(e) => handleBudgetChange('field', e.target.value)} 
-                                        className="w-full"
-                                    />
-                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Increases fear. High visibility.</div>
+                                    <input type="range" min="0" max="100" value={budget.field} onChange={(e) => handleBudgetChange('field', e.target.value)} className="w-full" />
+                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Pre-crime arrests. Generates fear.</div>
                                 </div>
 
                                 <div>
                                     <div className="flex justify-between mb-2 font-header text-xl text-white">
-                                        <span>R&D / ALGORITHMS</span>
+                                        <span>LAYER 3: CONDITIONING</span>
                                         <span>{budget.rd}%</span>
                                     </div>
-                                    <input 
-                                        type="range" min="0" max="100" value={budget.rd} 
-                                        onChange={(e) => handleBudgetChange('rd', e.target.value)} 
-                                        className="w-full"
-                                    />
-                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Improves prediction accuracy.</div>
+                                    <input type="range" min="0" max="100" value={budget.rd} onChange={(e) => handleBudgetChange('rd', e.target.value)} className="w-full" />
+                                    <div className="text-[10px] text-zinc-500 mt-1">Impact: Long term stability. Cultural alignment.</div>
                                 </div>
                                 
-                                <div className="pt-4 border-t border-zinc-800">
-                                    <div className="text-xs font-mono text-zinc-500 uppercase mb-2">Projected Outcomes</div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-2 border border-zinc-800 bg-zinc-900 text-center">
-                                            <div className="text-[9px] text-zinc-500">STABILITY</div>
-                                            <div className="text-xl text-white font-header">{stability}%</div>
-                                        </div>
-                                        <div className="p-2 border border-zinc-800 bg-zinc-900 text-center">
-                                            <div className="text-[9px] text-zinc-500">FEAR INDEX</div>
-                                            <div className="text-xl text-red-500 font-header">{fear}%</div>
-                                        </div>
-                                    </div>
+                                <div className="pt-4 border-t border-zinc-800 grid grid-cols-2 gap-4">
+                                    <div className="p-2 border border-zinc-800 bg-zinc-900 text-center"><div className="text-[9px] text-zinc-500">STABILITY</div><div className="text-xl text-white font-header">{stability}%</div></div>
+                                    <div className="p-2 border border-zinc-800 bg-zinc-900 text-center"><div className="text-[9px] text-zinc-500">FEAR INDEX</div><div className="text-xl text-red-500 font-header">{fear}%</div></div>
                                 </div>
                             </div>
                         </Box>
                     </div>
 
-                    {/* Asset Management */}
                     <div className="w-1/2 flex flex-col gap-6">
                         <Box title="ASSET_MANIFEST" className="h-2/3" scroll>
                             <div className="space-y-2">
                                 {assets.map(asset => (
-                                    <div 
-                                        key={asset.id}
-                                        onClick={() => setSelectedAsset(asset)}
-                                        className={`p-3 border cursor-pointer transition-all flex justify-between items-center ${selectedAsset?.id === asset.id ? 'bg-zinc-800 border-white' : 'bg-black border-zinc-800 hover:bg-zinc-900'}`}
-                                    >
-                                        <div>
-                                            <div className="font-tech text-white">{asset.id}</div>
-                                            <div className="text-[9px] text-zinc-500">{asset.type}</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className={`text-[10px] font-bold ${asset.status === 'OFFLINE' || asset.status === 'ENGAGED' ? 'text-red-500' : 'text-green-500'}`}>{asset.status}</div>
-                                            <div className="text-[9px] text-zinc-500">{asset.loc}</div>
-                                        </div>
+                                    <div key={asset.id} onClick={() => setSelectedAsset(asset)} className={`p-3 border cursor-pointer transition-all flex justify-between items-center ${selectedAsset?.id === asset.id ? 'bg-zinc-800 border-white' : 'bg-black border-zinc-800 hover:bg-zinc-900'}`}>
+                                        <div><div className="font-tech text-white">{asset.id}</div><div className="text-[9px] text-zinc-500">{asset.type}</div></div>
+                                        <div className="text-right"><div className={`text-[10px] font-bold ${asset.status === 'OFFLINE' || asset.status === 'ENGAGED' ? 'text-red-500' : 'text-green-500'}`}>{asset.status}</div><div className="text-[9px] text-zinc-500">{asset.loc}</div></div>
                                     </div>
                                 ))}
                             </div>
@@ -500,22 +631,11 @@
                         <Box title="UNIT_DETAILS" className="h-1/3" alert={selectedAsset?.health < 50}>
                             {selectedAsset ? (
                                 <div className="space-y-2 animate-fade-in">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-header text-xl text-white">{selectedAsset.id}</span>
-                                        <span className="text-xs font-mono">{selectedAsset.type}</span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[9px] text-zinc-500"><span>INTEGRITY</span><span>{selectedAsset.health}%</span></div>
-                                        <LoadingBar progress={selectedAsset.health} color={selectedAsset.health < 30 ? 'bg-red-600' : 'bg-white'} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 mt-2">
-                                        <Button>RECALL</Button>
-                                        <Button alert>SELF_DESTRUCT</Button>
-                                    </div>
+                                    <div className="flex justify-between items-center"><span className="font-header text-xl text-white">{selectedAsset.id}</span><span className="text-xs font-mono">{selectedAsset.type}</span></div>
+                                    <div className="space-y-1"><div className="flex justify-between text-[9px] text-zinc-500"><span>INTEGRITY</span><span>{selectedAsset.health}%</span></div><LoadingBar progress={selectedAsset.health} color={selectedAsset.health < 30 ? 'bg-red-600' : 'bg-white'} /></div>
+                                    <div className="grid grid-cols-2 gap-2 mt-2"><Button>RECALL</Button><Button alert>SELF_DESTRUCT</Button></div>
                                 </div>
-                            ) : (
-                                <div className="h-full flex items-center justify-center text-center opacity-50 text-xs font-mono">SELECT UNIT</div>
-                            )}
+                            ) : (<div className="h-full flex items-center justify-center text-center opacity-50 text-xs font-mono">SELECT UNIT</div>)}
                         </Box>
                     </div>
                 </div>
@@ -525,7 +645,7 @@
         // --- TACTICAL MAP (HOK) ---
         const InteractiveMap = () => {
             const [selectedSector, setSelectedSector] = useState(null);
-            const [overlay, setOverlay] = useState('RISK'); // RISK, OUTPUT, SURV
+            const [overlay, setOverlay] = useState('RISK');
             const [tab, setTab] = useState('MAP');
 
             const handleSectorClick = (sector) => {
@@ -586,20 +706,10 @@
                             {tab === 'LABOR' ? (
                                 <Box title="GUILD_442_SURVEILLANCE" className="h-full" alert scroll>
                                     <div className="space-y-4">
-                                        <div className="p-2 bg-red-950/20 border border-red-900/50 text-red-400 text-xs font-mono">
-                                            WARNING: ILLEGAL ASSEMBLY DETECTED IN SECTOR 7G
-                                        </div>
-                                        <div className="text-xs font-mono text-zinc-500">TRANSCRIPT LOG [AUDIO_ONLY]</div>
+                                        <div className="p-2 bg-red-950/20 border border-red-900/50 text-red-400 text-xs font-mono">WARNING: ILLEGAL ASSEMBLY DETECTED IN SECTOR 7G</div>
                                         <div className="space-y-2 text-[10px] font-mono text-zinc-400 border-l border-zinc-800 pl-2">
                                             <p><span className="text-zinc-600">TARGET_A:</span> "We can't meet the new quotas. It's physically impossible."</p>
                                             <p><span className="text-zinc-600">TARGET_B:</span> "Kalen says we strike tomorrow. Before the new shift."</p>
-                                            <p><span className="text-zinc-600">TARGET_A:</span> "Did you see the new cameras? The ISB is watching."</p>
-                                            <p><span className="text-zinc-600">TARGET_B:</span> "Let them watch. They can't arrest all of us."</p>
-                                        </div>
-                                        <div className="h-px bg-zinc-800"></div>
-                                        <div className="flex justify-between text-[9px] text-zinc-500">
-                                            <span>SENTIMENT: HOSTILE</span>
-                                            <span>CONFIDENCE: 98%</span>
                                         </div>
                                         <Button alert className="w-full mt-2">FLAG FOR INTERVENTION</Button>
                                     </div>
@@ -608,30 +718,13 @@
                                 <Box title="SECTOR_INTEL" className="h-full" scroll>
                                     {selectedSector ? (
                                         <div className="space-y-4 animate-fade-in">
-                                            <div>
-                                                <h2 className="text-xl font-header text-white mb-1">{selectedSector.name}</h2>
-                                                <div className="text-[9px] font-mono text-zinc-500">{selectedSector.id} // SECURE_GRID_4</div>
-                                            </div>
-                                            <div className="p-2 border border-zinc-800 bg-zinc-900/50">
-                                                <div className="text-[9px] font-mono text-zinc-500 uppercase mb-1">Status Report</div>
-                                                <p className="text-xs font-tech text-white leading-tight"><Typewriter text={selectedSector.detail} key={selectedSector.id} /></p>
-                                            </div>
+                                            <div><h2 className="text-xl font-header text-white mb-1">{selectedSector.name}</h2><div className="text-[9px] font-mono text-zinc-500">{selectedSector.id} // SECURE_GRID_4</div></div>
+                                            <div className="p-2 border border-zinc-800 bg-zinc-900/50"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-1">Status Report</div><p className="text-xs font-tech text-white leading-tight">{selectedSector.detail}</p></div>
                                             <div className="space-y-3">
-                                                <div>
-                                                    <div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>INSURGENCY RISK</span><span className={selectedSector.risk > 50 ? 'text-red-500' : 'text-zinc-400'}>{selectedSector.risk}%</span></div>
-                                                    <LoadingBar progress={selectedSector.risk} color={selectedSector.risk > 50 ? 'bg-red-600' : 'bg-green-600'} />
-                                                </div>
-                                                <div>
-                                                    <div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>ECONOMIC OUTPUT</span><span className="text-zinc-400">{selectedSector.output}%</span></div>
-                                                    <LoadingBar progress={selectedSector.output} color="bg-amber-600" />
-                                                </div>
+                                                <div><div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>INSURGENCY RISK</span><span className={selectedSector.risk > 50 ? 'text-red-500' : 'text-zinc-400'}>{selectedSector.risk}%</span></div><LoadingBar progress={selectedSector.risk} color={selectedSector.risk > 50 ? 'bg-red-600' : 'bg-green-600'} /></div>
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-center opacity-50">
-                                            <div className="space-y-2"><div className="text-4xl">⌖</div><div className="text-xs font-mono">SELECT SECTOR<br/>FOR ANALYSIS</div></div>
-                                        </div>
-                                    )}
+                                    ) : (<div className="h-full flex items-center justify-center text-center opacity-50"><div className="space-y-2"><div className="text-4xl">⌖</div><div className="text-xs font-mono">SELECT SECTOR<br/>FOR ANALYSIS</div></div></div>)}
                                 </Box>
                             )}
                         </div>
@@ -645,7 +738,7 @@
             const [input, setInput] = useState('');
             const [key, setKey] = useState('');
             const [output, setOutput] = useState('');
-            const [mode, setMode] = useState('ENCRYPT'); // ENCRYPT or DECRYPT
+            const [mode, setMode] = useState('ENCRYPT'); 
             const [isProcessing, setIsProcessing] = useState(false);
 
             const handleProcess = () => {
@@ -707,14 +800,7 @@
 
         // --- DASHBOARD (Main) ---
         const Dashboard = () => {
-             const stabilityData = [75, 78, 80, 75, 72, 68, 65, 62, 58, 55, 60, 65, 70, 75, 80];
-             const resources = [
-                 { label: "Surveillance", val: 85 },
-                 { label: "Field Ops", val: 45 },
-                 { label: "R&D", val: 60 },
-                 { label: "Detention", val: 30 }
-             ];
-             
+             const resources = [{ label: "Data Coll.", val: 85 }, { label: "Predictive", val: 45 }, { label: "Conditioning", val: 60 }, { label: "Detention", val: 30 }];
              return (
                 <div className="h-full grid grid-cols-12 grid-rows-6 gap-4 animate-fade-in">
                     <Box title="SYSTEM_METRICS" className="col-span-8 row-span-2">
@@ -725,27 +811,20 @@
                             <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">144</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Cycle Count</div></div>
                         </div>
                     </Box>
-                    
                     <Box title="PRIORITY_FEED" className="col-span-4 row-span-6" alert scroll>
                          <div className="space-y-3">
-                            {[{ src: "HOK", msg: "Labor strikes reported in Sector 7G. Mining Guild 442 claiming responsibility.", time: "00:02" }, { src: "CORUSCANT", msg: "Budget allocation for Project Panopticon approved by COMPNOR.", time: "01:15" }, { src: "KESSEL", msg: "Insurgency activity spike. 3 transports lost.", time: "02:30" }, { src: "SYS", msg: "Director Marus login detected. Biometrics confirmed.", time: "03:45" }, { src: "INTEL", msg: "New Republic fleet movement detected in Mid Rim.", time: "04:10" }, { src: "ALSAKAN", msg: "Civil unrest quelled. 45 detained.", time: "05:00" }, { src: "CORE", msg: "Grand Vizier requesting update on Panopticon.", time: "05:30" }].map((item, i) => (
+                            {[{ src: "HOK", msg: "Labor strikes reported in Sector 7G. Guild 442.", time: "00:02" }, { src: "CORUSCANT", msg: "Budget for Phase II approved by COMPNOR.", time: "01:15" }, { src: "KESSEL", msg: "Insurgency activity spike.", time: "02:30" }, { src: "SYS", msg: "Director Marus login detected.", time: "03:45" }, { src: "INTEL", msg: "Grand Moff Kessler viewing Mining Reports.", time: "04:10" }].map((item, i) => (
                                 <div key={i} className="pb-2 border-b border-zinc-800/50"><div className="flex justify-between text-[9px] font-mono text-zinc-500 mb-1"><span>{item.src}</span><span>-{item.time}</span></div><div className="text-xs font-tech text-zinc-300 leading-tight">{item.msg}</div></div>
                             ))}
                         </div>
                     </Box>
-
-                    <Box title="STABILITY_TREND // 90_DAY_AGGREGATE" className="col-span-5 row-span-4 bg-zinc-900">
-                        <div className="w-full h-full p-4 relative"><LineChart data={stabilityData} /><div className="absolute top-2 right-2 text-[9px] text-zinc-500 font-mono">SECTOR STABILITY INDEX</div></div>
-                    </Box>
-                    
-                    <Box title="RESOURCE_ALLOCATION" className="col-span-3 row-span-4">
-                        <div className="h-full flex flex-col justify-around px-2">{resources.map((r, i) => (<div key={i} className="space-y-1"><div className="flex justify-between text-[9px] font-mono text-zinc-400"><span>{r.label}</span><span>{r.val}%</span></div><LoadingBar progress={r.val} color="bg-zinc-600" /></div>))}</div>
-                    </Box>
+                    <Box title="STABILITY_TREND" className="col-span-5 row-span-4 bg-zinc-900"><div className="w-full h-full relative p-4 flex items-center justify-center text-zinc-500 text-xs font-mono">TREND_ANALYSIS_GRAPH_ACTIVE</div></Box>
+                    <Box title="INITIATIVE_STATUS" className="col-span-3 row-span-4"><div className="h-full flex flex-col justify-around px-2">{resources.map((r, i) => (<div key={i} className="space-y-1"><div className="flex justify-between text-[9px] font-mono text-zinc-400"><span>{r.label}</span><span>{r.val}%</span></div><LoadingBar progress={r.val} color="bg-zinc-600" /></div>))}</div></Box>
                 </div>
             );
         };
 
-        // --- PANOPTICON ---
+        // --- PANOPTICON (Detailed) ---
         const Panopticon = () => {
              const [expanded, setExpanded] = useState('I');
              const [tab, setTab] = useState('PHASES');
@@ -758,17 +837,16 @@
              }, [tab]);
 
              const phases = [
-                { id: "I", title: "FOUNDATION", detail: "Data integration. Recruitment. Infrastructure Audit.", tasks: ["Recruit Local Personnel", "Inventory Assets", "Audit Civil Service", "Secure Kessler Authorization"] },
-                { id: "II", title: "INFRASTRUCTURE", detail: "Surveillance web deployment. 70% coverage target.", tasks: ["Deploy Camera Grid", "Install Bio-Scanners", "Activate Algorithm v4", "Establish Ops Center"] },
-                { id: "III", title: "OPERATIONS", detail: "Predictive intervention. Graduated pressure protocols.", tasks: ["Identify High-Risk Targets", "Begin Graduated Pressure", "Monitor Dissident Response", "Test Intervention Thresholds"] },
-                { id: "IV", title: "CONDITIONING", detail: "Behavioral modification. Systemic inevitability.", tasks: ["Full Social Integration", "Automated Sentencing", "Cultural Realignment", "Expansion Assessment"] }
+                { id: "I", title: "FOUNDATION (Data)", detail: "Comprehensive data collection. Integration of medical, financial, and transit records.", tasks: ["Recruit Local Personnel", "Inventory Assets", "Audit Civil Service", "Secure Kessler Authorization"] },
+                { id: "II", title: "PREDICTIVE (Analysis)", detail: "Algorithm v4 deployment. Identifying risk patterns before crimes occur.", tasks: ["Deploy Camera Grid", "Install Bio-Scanners", "Activate Algorithm v4", "Establish Ops Center"] },
+                { id: "III", title: "INTERVENTION (Conditioning)", detail: "Graduated pressure protocols. Making resistance psychologically impossible.", tasks: ["Identify High-Risk Targets", "Begin Graduated Pressure", "Monitor Dissident Response", "Test Intervention Thresholds"] }
             ];
 
             return (
                 <div className="h-full flex flex-col gap-6 animate-slide-in">
                     <Box title="PROJECT_HEADER" className="shrink-0 p-6 flex justify-between items-center">
-                        <div><h1 className="text-4xl font-header text-white mb-2">PROJECT PANOPTICON</h1><p className="font-mono text-sm text-zinc-400 max-w-3xl">"A society that prioritizes privacy over security has chosen chaos over order."</p></div>
-                        <div className="text-right flex flex-col gap-2"><div className="text-xs font-mono text-zinc-500">TARGET: POPULATION_TYPE_C</div><div className="flex gap-2 justify-end"><Button active={tab === 'PHASES'} onClick={() => setTab('PHASES')}>PHASE_VIEW</Button><Button active={tab === 'ALGO'} onClick={() => setTab('ALGO')} alert>PREDICTIVE_MODEL</Button></div></div>
+                        <div><h1 className="text-4xl font-header text-white mb-2">COMPREHENSIVE SOCIAL EQUILIBRIUM</h1><p className="font-mono text-sm text-zinc-400 max-w-3xl">"Privacy allows conspiracy. Privacy enables resistance. Privacy creates blind spots."</p></div>
+                        <div className="text-right flex flex-col gap-2"><div className="text-xs font-mono text-zinc-500">TARGET: HOK (OVERSECTOR 4)</div><div className="flex gap-2 justify-end"><Button active={tab === 'PHASES'} onClick={() => setTab('PHASES')}>PHASE_VIEW</Button><Button active={tab === 'ALGO'} onClick={() => setTab('ALGO')} alert>PREDICTIVE_MODEL</Button></div></div>
                     </Box>
 
                     <div className="flex-1 min-h-0 flex gap-6">
@@ -779,20 +857,21 @@
                             </Box>
                             <div className="w-1/3 flex flex-col gap-4">
                                 <Box title="PSYCHOGRAPHIC_MODEL" className="h-1/2"><RadarChart /></Box>
-                                <Box title="IMPLEMENTATION_METRICS" className="h-1/2">
-                                    <div className="space-y-4 pt-2"><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Data Ingestion</span><span className="text-white">12TB/CYCLE</span></div><LoadingBar progress={88} color="bg-zinc-400" /><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Predictive Accuracy</span><span className="text-white">67%</span></div><LoadingBar progress={67} color="bg-amber-600" /><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Intervention Rate</span><span className="text-white">0.04%</span></div><LoadingBar progress={4} color="bg-red-600" /></div>
+                                <Box title="FALSE_POSITIVE_UTILITY" className="h-1/2 p-4">
+                                    <div className="text-xs font-mono text-zinc-400 mb-2">"False positives are a feature, not a bug. Generalized uncertainty creates caution."</div>
+                                    <div className="mt-4"><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Current Error Rate</span><span className="text-white">12%</span></div><LoadingBar progress={12} color="bg-red-600" /></div>
                                 </Box>
                             </div>
                             </>
                         )}
                         {tab === 'ALGO' && (
                              <Box title="ALGORITHMIC_PROCESSING_UNIT" className="w-2/3" glowing>
-                                 <div className="h-full flex flex-col items-center justify-center"><div className="w-64 h-64 border-4 border-zinc-800 rounded-full flex items-center justify-center relative"><div className="absolute inset-0 border-2 border-red-900 rounded-full animate-ping opacity-20"></div><div className="text-center"><div className="text-xs font-mono text-zinc-500">ANALYZING</div><div className="text-2xl font-header text-white">{sim.name}</div><div className="text-4xl font-header mt-2" style={{color: sim.risk > 80 ? 'red' : sim.risk > 50 ? 'orange' : 'green'}}>{sim.risk}%</div><div className="text-[10px] font-mono text-zinc-500 mt-1">RISK QUOTIENT</div></div></div><div className="mt-8 grid grid-cols-3 gap-4 w-full px-8"><div className="p-2 border border-zinc-800 text-center"><div className="text-[9px] text-zinc-500">CREDIT SCORE</div><div className="text-white font-mono">FLAGGED</div></div><div className="p-2 border border-zinc-800 text-center"><div className="text-[9px] text-zinc-500">ASSOCIATIONS</div><div className="text-white font-mono">2 SUSPECTS</div></div><div className="p-2 border border-zinc-800 text-center"><div className="text-[9px] text-zinc-500">TRAVEL</div><div className="text-white font-mono">RESTRICTED</div></div></div></div>
+                                 <div className="h-full flex flex-col items-center justify-center"><div className="w-64 h-64 border-4 border-zinc-800 rounded-full flex items-center justify-center relative"><div className="absolute inset-0 border-2 border-red-900 rounded-full animate-ping opacity-20"></div><div className="text-center"><div className="text-xs font-mono text-zinc-500">ANALYZING</div><div className="text-2xl font-header text-white">{sim.name}</div><div className="text-4xl font-header mt-2" style={{color: sim.risk > 80 ? 'red' : sim.risk > 50 ? 'orange' : 'green'}}>{sim.risk}%</div><div className="text-[10px] font-mono text-zinc-500 mt-1">RISK QUOTIENT</div></div></div></div>
                              </Box>
                         )}
                         <div className="w-1/3 flex flex-col gap-6">
                             <Box title="POLITICAL_OBSTACLE" alert fit>
-                                <div className="p-4"><div className="flex items-center gap-4 mb-4"><div className="w-12 h-12 bg-zinc-900 border border-red-900 flex items-center justify-center text-red-700 font-header text-xl">GK</div><div><div className="text-sm font-bold text-white uppercase">Grand Moff Kessler</div><div className="text-[10px] text-zinc-500">Reformist Faction Leader</div></div></div><p className="text-xs text-zinc-400 font-mono leading-tight">Advocates "Trust-Based Governance". Blocking expansion in Oversector 4. Strategy: Exploit labor unrest in Hok mining sector to justify intervention as "Infrastructure Security Audit".</p></div>
+                                <div className="p-4"><div className="flex items-center gap-4 mb-4"><div className="w-12 h-12 bg-zinc-900 border border-red-900 flex items-center justify-center text-red-700 font-header text-xl">GK</div><div><div className="text-sm font-bold text-white uppercase">Grand Moff Kessler</div><div className="text-[10px] text-zinc-500">Reformist Faction Leader</div></div></div><p className="text-xs text-zinc-400 font-mono leading-tight">Advocates "Trust-Based Governance". Blocking expansion in Oversector 4. Vulnerable to accusations of negligence regarding Mining Guild strikes.</p></div>
                             </Box>
                         </div>
                     </div>
@@ -802,12 +881,16 @@
 
         const Dossiers = () => {
              const [selected, setSelected] = useState('krask');
-             const profiles = { krask: { name: "VALEN KRASK", rank: "DIRECTOR", unit: "ISB CENTRAL", bio: `Born 50 BBY, Alsakan. Nicknames: "The Physician", "The Surgeon". Approaches security as surgery: painful but necessary. Absolute certainty in moral correctness of authoritarian control. Unmarried. No children.`, activity: ["Authorized Panopticon Budget (10B CR)", "Meeting with T. Marus (0700)", "Reviewed Kessel Insurgency Report", "Denied expansion request for Sector 9"] }, marus: { name: "THANE MARUS", rank: "PROJECT DIRECTOR", unit: "PANOPTICON INITIATIVE", bio: `Deputy Director. Intelligent, pragmatic. Selected for flexibility. Questioned ethical implications of Panopticon but accepted the logic of "Freedom through Order". Family: Wife + 2 Children (Coruscant).`, activity: ["Accepted Hok Assignment", "Briefing with Tech Division", "Security Clearance Upgrade: Lvl 10", "Personal Log: Family Relocation?"] }, kessler: { name: "GARRIK KESSLER", rank: "GRAND MOFF", unit: "OVERSECTOR 4", bio: `Primary political obstacle. Reformist Faction Leader. Advocates "Trust-Based Governance". Believes heavy security creates resistance. Can block expansion in Oversector 4. Vulnerability: Economic output of Hok.`, activity: ["Submitted complaint re: ISB overreach", "Touring Mining District 7G", "Meeting with Ruling Council rep", "Denied automated surveillance permit"] } };
+             const profiles = { 
+                 krask: { name: "VALEN KRASK", rank: "DIRECTOR", unit: "ISB CENTRAL", bio: `Born 50 BBY, Alsakan. Nicknames: "The Physician", "The Surgeon". Approaches security as surgery. Believes the Republic failed because it couldn't make difficult decisions. Unmarried. No children. The Ivory Tower is his only home.`, activity: ["Authorized Phase II Budget", "Meeting with T. Marus (0700)", "Reviewed 'Death Star' failure memo"] }, 
+                 marus: { name: "THANE MARUS", rank: "PROJECT DIRECTOR", unit: "PANOPTICON INITIATIVE", bio: `Deputy Director. Intelligent, pragmatic. Selected for flexibility. Questioned ethical implications but accepted the logic of "Freedom through Order". Family: Wife + 2 Children (Coruscant). Hesitant but loyal.`, activity: ["Accepted Hok Assignment", "Briefing with Tech Division", "Relocation Protocols Initiated"] }, 
+                 kessler: { name: "GARRIK KESSLER", rank: "GRAND MOFF", unit: "OVERSECTOR 4", bio: `Primary political obstacle. Reformist Leader. Advocates "Trust-Based Governance". Believes heavy security creates resistance. Controls Hok.`, activity: ["Submitted complaint re: ISB overreach", "Touring Mining District 7G", "Denied automated surveillance permit"] } 
+            };
             const data = profiles[selected];
             return (
                 <div className="h-full flex gap-6 animate-slide-in">
                     <div className="w-64 flex flex-col gap-2">{Object.entries(profiles).map(([key, p]) => (<button key={key} onClick={() => setSelected(key)} className={`p-4 border text-left transition-all ${selected === key ? 'bg-zinc-900 border-white' : 'bg-black border-zinc-800 hover:border-zinc-600'}`}><div className="text-[9px] font-mono text-zinc-500 uppercase">{p.rank}</div><div className="font-header text-lg text-white">{p.name}</div></button>))}</div>
-                    <Box title={`SUBJECT // ${data.name}`} className="flex-1" scroll><div className="grid grid-cols-2 gap-8"><div><div className="mb-6"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Biographical Summary</div><p className="font-mono text-sm text-zinc-300 leading-relaxed">{data.bio}</p></div><div className="p-4 border border-zinc-800 bg-zinc-900/30"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Psychometric Evaluation</div><div className="space-y-3"><div className="flex justify-between text-[10px] text-zinc-400"><span>LOYALTY</span><span>98%</span></div><LoadingBar progress={98} /><div className="flex justify-between text-[10px] text-zinc-400"><span>AGGRESSION</span><span>45%</span></div><LoadingBar progress={45} color="bg-zinc-600" /><div className="flex justify-between text-[10px] text-zinc-400"><span>CAPABILITY</span><span>92%</span></div><LoadingBar progress={92} color="bg-red-600" /></div></div></div><div><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2 border-b border-zinc-800 pb-1">Recent Activity Log</div><div className="space-y-2">{data.activity.map((act, i) => (<div key={i} className="flex gap-3 text-xs font-mono text-zinc-400"><span className="text-zinc-600">[-0{i}h]</span><span>{act}</span></div>))}</div></div></div></Box>
+                    <Box title={`SUBJECT // ${data.name}`} className="flex-1" scroll><div className="grid grid-cols-2 gap-8"><div><div className="mb-6"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Biographical Summary</div><p className="font-mono text-sm text-zinc-300 leading-relaxed">{data.bio}</p></div></div><div><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2 border-b border-zinc-800 pb-1">Recent Activity Log</div><div className="space-y-2">{data.activity.map((act, i) => (<div key={i} className="flex gap-3 text-xs font-mono text-zinc-400"><span className="text-zinc-600">[-0{i}h]</span><span>{act}</span></div>))}</div></div></div></Box>
                 </div>
             );
         };
@@ -816,10 +899,8 @@
             const logs = [
                 { id: "LOG-0547", date: "5 ABY // 05:47", title: "Morning Reflection", text: "The city transitions from night to day. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure. Order requires vigilance. The Ivory Tower stands as a monument to that vigilance." },
                 { id: "LOG-0700", date: "5 ABY // 07:00", title: "Meeting: Marus / Panopticon", text: "Marus is skeptical but obedient. I showed him the 'Comprehensive Social Equilibrium Initiative'. He called it ambitious. He asked about the privacy implications. I told him privacy is a luxury the Empire cannot afford. We are building systematic inevitability." },
-                { id: "LOG-0746", date: "5 ABY // 07:46", title: "Strategy: The Kessler Maneuver", text: "Marus identified the risk: Grand Moff Kessler. I explained the strategy. We frame Panopticon as 'Infrastructure Security Audit'. We use the labor unrest on Hok—which Kessler is responsible for—as the pretext. He cannot refuse security upgrades without appearing negligent to the Ruling Council." },
-                { id: "LOG-19BBY", date: "19 BBY // ARCHIVE", title: "The Mother Incident", text: "Lyssa Krask. History teacher. Couldn't adapt to the New Order. I reviewed her file myself. Recommended 'ideological counseling' rather than detention. Three months re-education. She never spoke to me again. I showed mercy. I chose the minimal intervention necessary. I am a surgeon." },
-                { id: "LOG-21BBY", date: "21 BBY // ARCHIVE", title: "Refugee Crisis Management", text: "Refugee populations are security vulnerabilities. Compassion that compromises security is not compassion, it's negligence. We screen rigorously or we create opportunities for infiltration. Every refugee could potentially be a spy. I would rather detain a thousand innocent people than let one saboteur through." },
-                { id: "LOG-04ABY", date: "4 ABY // POST-ENDOR", title: "The Crisis of Authority", text: "The Emperor is dead. The mechanism is broken. Without him, we have institutions, yes, but we lack the unifying force. We must create different capabilities. Institutional rather than personal. Systematic rather than charismatic. The ISB must become the nervous system that keeps the corpse walking." }
+                { id: "LOG-21BBY", date: "21 BBY // ARCHIVE", title: "Refugee Crisis Management", text: "Refugee populations are security vulnerabilities. Compassion that compromises security is not compassion, it's negligence. I would rather detain a thousand innocent people than let one saboteur through." },
+                { id: "LOG-04ABY", date: "4 ABY // POST-ENDOR", title: "The Crisis of Authority", text: "The Emperor is dead. The mechanism is broken. Without him, we have institutions, yes, but we lack the unifying force. We must create different capabilities. Institutional rather than personal." }
             ];
             return (
                 <div className="h-full flex gap-6 animate-slide-in">
@@ -835,7 +916,6 @@
 
         const App = () => {
             const [view, setView] = useState('dashboard');
-            const [booted, setBooted] = useState(false);
             const [loginStep, setLoginStep] = useState(0);
 
             const handleLogin = () => {
@@ -863,6 +943,8 @@
                 { id: 'dashboard', label: 'CMD_DECK', icon: 'GRID' },
                 { id: 'panopticon', label: 'PRJ_PANOPTICON', icon: 'EYE' },
                 { id: 'hok', label: 'SEC_VIEW_HOK', icon: 'MAP' },
+                { id: 'psych', label: 'PSYCH_EVAL', icon: 'MED' }, // NEW
+                { id: 'comms', label: 'SECURE_COMMS', icon: 'MSG' }, // NEW
                 { id: 'logistics', label: 'LOGISTICS', icon: 'BOX' },
                 { id: 'network', label: 'NETWORK_GRPH', icon: 'NET' },
                 { id: 'dossiers', label: 'DOSSIERS', icon: 'USER' },
@@ -875,7 +957,7 @@
                     <div className="crt-overlay"></div><div className="scanline"></div><div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
                     <header className="h-16 shrink-0 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-6 relative z-30">
                         <div className="flex items-center gap-4"><div className="w-8 h-8 border border-white flex items-center justify-center font-header text-xl bg-white text-black">ISB</div><div><h1 className="text-xl font-header tracking-widest text-white leading-none">{LORE.director}</h1><div className="text-[9px] font-mono text-zinc-500 tracking-[0.2em]">{LORE.id} // {LORE.clearance}</div></div></div>
-                        <div className="hidden lg:block text-[10px] font-mono text-zinc-600 tracking-[0.3em] opacity-50">"{LORE.quote}"</div>
+                        <div className="hidden lg:block text-[10px] font-mono text-zinc-600 tracking-[0.3em] opacity-50">"{LORE.motto}"</div>
                         <div className="flex items-center gap-8"><div className="hidden md:block text-right"><div className="text-[10px] font-mono text-red-500 tracking-widest animate-pulse">SECURE UPLINK ACTIVE</div><div className="text-[9px] font-mono text-zinc-600">{LORE.location}</div></div><div className="text-right"><div className="text-xl font-mono-bold text-white leading-none">0547</div><div className="text-[10px] font-mono text-zinc-500">CYCLE 144</div></div></div>
                     </header>
                     <div className="flex-1 flex overflow-hidden relative z-20">
@@ -884,7 +966,7 @@
                                 {NAV.map((item) => (
                                     <button key={item.id} onClick={() => setView(item.id)} className={`group relative px-6 py-3 text-left transition-all duration-200 flex items-center gap-4 hover:bg-zinc-900 ${view === item.id ? 'border-r-2 border-white bg-zinc-900' : 'border-r-2 border-transparent'}`}>
                                         <div className={`text-lg transition-colors ${view === item.id ? 'text-red-500' : 'text-zinc-600 group-hover:text-zinc-400'}`}>
-                                            {item.icon === 'GRID' && '⊞'} {item.icon === 'EYE' && '◉'} {item.icon === 'MAP' && '⌖'} {item.icon === 'USER' && '♟'} {item.icon === 'LOCK' && '⚿'} {item.icon === 'FILE' && '≡'} {item.icon === 'BOX' && '◫'} {item.icon === 'NET' && '☊'}
+                                            {item.icon === 'GRID' && '⊞'} {item.icon === 'EYE' && '◉'} {item.icon === 'MAP' && '⌖'} {item.icon === 'USER' && '♟'} {item.icon === 'LOCK' && '⚿'} {item.icon === 'FILE' && '≡'} {item.icon === 'BOX' && '◫'} {item.icon === 'NET' && '☊'} {item.icon === 'MED' && '⚕'} {item.icon === 'MSG' && '✉'}
                                         </div>
                                         <span className={`hidden md:block text-xs font-tech tracking-wider uppercase ${view === item.id ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}>{item.label}</span>
                                     </button>
@@ -901,6 +983,8 @@
                                 {view === 'dossiers' && <Dossiers />}
                                 {view === 'network' && <NetworkAnalysis />}
                                 {view === 'logistics' && <Logistics />}
+                                {view === 'psych' && <BehavioralMod />}
+                                {view === 'comms' && <SecureComms />}
                             </div>
                         </main>
                     </div>

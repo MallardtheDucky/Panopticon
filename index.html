@@ -222,15 +222,24 @@
             return <span>{display}</span>;
         };
 
-        const RadarChart = () => {
+        const RadarChart = ({ stability, fear }) => {
+            // Simplified dynamic radar for visual effect
+            const s = stability / 100;
+            const f = fear / 100;
+            
+            const p1 = `${50},${10 + (1-s)*40}`; // Fear (Top)
+            const p2 = `${90 - (1-f)*40},${50}`; // Dependency (Right)
+            const p3 = `${50},${90 - (1-s)*40}`; // Compliance (Bottom)
+            const p4 = `${10 + (1-f)*40},${50}`; // Resistance (Left)
+            
             return (
                 <div className="relative w-full h-full flex items-center justify-center">
                     <svg viewBox="0 0 100 100" className="w-3/4 h-3/4 overflow-visible">
                         <polygon points="50,0 100,50 50,100 0,50" fill="none" stroke="#333" strokeWidth="1" />
-                        <polygon points="50,25 75,50 50,75 25,50" fill="none" stroke="#333" strokeDasharray="2 2" strokeWidth="0.5" />
                         <line x1="50" y1="0" x2="50" y2="100" stroke="#333" strokeWidth="0.5" />
                         <line x1="0" y1="50" x2="100" y2="50" stroke="#333" strokeWidth="0.5" />
-                        <polygon points="50,10 90,50 50,80 20,50" fill="rgba(185, 28, 28, 0.2)" stroke="#b91c1c" strokeWidth="1" />
+                        
+                        <polygon points={`${p1} ${p2} ${p3} ${p4}`} fill="rgba(185, 28, 28, 0.4)" stroke="#b91c1c" strokeWidth="1" className="transition-all duration-1000 ease-in-out" />
                     </svg>
                     <div className="absolute top-0 text-[8px] text-zinc-500">FEAR</div>
                     <div className="absolute bottom-0 text-[8px] text-zinc-500">COMPLIANCE</div>
@@ -414,10 +423,10 @@
         }
 
         // --- NEW MODULE: TERMINAL ---
-        const Terminal = () => {
+        const Terminal = ({ onCommand }) => {
             const [history, setHistory] = useState([
                 "ISB-OS v4.2.1 [SECURE TERMINAL]",
-                "Type 'help' for available commands."
+                "Type 'HELP' for available commands."
             ]);
             const [input, setInput] = useState("");
             const bottomRef = useRef(null);
@@ -426,38 +435,60 @@
 
             const handleCommand = (e) => {
                 if (e.key === 'Enter') {
-                    const cmd = input.trim().toLowerCase();
+                    const cmd = input.trim().toUpperCase();
                     let response = "";
+                    let triggerAction = null;
                     
-                    switch(cmd) {
-                        case 'help':
-                            response = "AVAILABLE COMMANDS: SCAN, PURGE, STATUS, ENCRYPT <MSG>, CLEAR, WHOAMI";
-                            break;
-                        case 'scan':
-                            response = "SCANNING SECTOR 7G... [||||||----] 60% COMPLETE. NO ANOMALIES YET.";
-                            break;
-                        case 'purge':
-                            response = "ERROR: AUTHORIZATION LEVEL INSUFFICIENT. GRAND MOFF APPROVAL REQUIRED.";
-                            break;
-                        case 'status':
-                            response = "SYSTEM OPTIMAL. GLOBAL ALERT LEVEL: LOW. UPLINK STABLE.";
-                            break;
-                        case 'clear':
-                            setHistory([]);
-                            setInput("");
-                            return;
-                        case 'whoami':
-                            response = "USER: DIRECTOR KRASK. CLEARANCE: 10. SESSION ID: 8X-99.";
-                            break;
-                        default:
-                            if (cmd.startsWith('encrypt ')) {
-                                response = `ENCRYPTED OUTPUT: ${btoa(cmd.split(' ').slice(1).join(' '))}`;
-                            } else {
-                                response = `UNKNOWN COMMAND: '${cmd}'`;
-                            }
+                    if (cmd === 'HELP') {
+                        response = "COMMANDS: ALERT [LEVEL], VIEW [PAGE], SCAN, PURGE, AUTHORIZE [PROTOCOL], DEPLOY [UNIT], OVERRIDE [TARGET], WHOAMI, CLEAR";
+                    } else if (cmd.startsWith('ALERT')) {
+                        const level = cmd.split(' ')[1];
+                        if (['HIGH', 'LOW', 'CRITICAL'].includes(level)) {
+                            response = `GLOBAL ALERT LEVEL SET TO: ${level}`;
+                            triggerAction = { type: 'ALERT', payload: level };
+                        } else {
+                            response = "ERROR: INVALID ALERT LEVEL. USE: HIGH, LOW";
+                        }
+                    } else if (cmd.startsWith('VIEW')) {
+                        const page = cmd.split(' ')[1]?.toLowerCase();
+                        if (page) {
+                            response = `NAVIGATING TO MODULE: ${page}`;
+                            triggerAction = { type: 'NAVIGATE', payload: page };
+                        } else {
+                            response = "ERROR: SPECIFY MODULE ID";
+                        }
+                    } else if (cmd === 'SCAN') {
+                        response = "SCANNING SECTOR 7G... [||||||----] 60% COMPLETE. ANOMALY DETECTED IN MINING DISTRICT.";
+                    } else if (cmd.startsWith('OVERRIDE')) {
+                        if (cmd.includes('KESSLER')) {
+                            response = "OVERRIDING GRAND MOFF AUTHORITY... DONE. ARTICLE 4 EMERGENCY POWERS ACTIVE.";
+                            triggerAction = { type: 'ALERT', payload: 'HIGH' };
+                        } else {
+                            response = "ERROR: TARGET REQUIRED.";
+                        }
+                    } else if (cmd.startsWith('DEPLOY')) {
+                        response = "GARRISON UNIT DISPATCHED TO SECTOR 7G. FEAR METRICS RISING.";
+                        triggerAction = { type: 'FEAR_SPIKE', payload: 10 };
+                    } else if (cmd.startsWith('AUTHORIZE')) {
+                         if (cmd.includes('PANOPTICON') || cmd.includes('PHASE_II')) {
+                             response = "AUTHORIZATION ACCEPTED. PHASE II PROTOCOLS UNLOCKED. KESSLER BYPASSED.";
+                             triggerAction = { type: 'UNLOCK', payload: 'PHASE_II' };
+                         } else {
+                             response = "ERROR: INSUFFICIENT CLEARANCE CODE.";
+                         }
+                    } else if (cmd === 'WHOAMI') {
+                        response = "USER: DIRECTOR VALEN KRASK. CLEARANCE: 10. ID: ISB-CEN-001. ALIAS: 'THE PHYSICIAN'.";
+                    } else if (cmd === 'CLEAR') {
+                        setHistory([]);
+                        setInput("");
+                        return;
+                    } else {
+                        response = `UNKNOWN COMMAND: '${cmd}'`;
                     }
+
                     setHistory(prev => [...prev, `> ${input}`, response]);
                     setInput("");
+                    if (triggerAction && onCommand) onCommand(triggerAction);
                 }
             };
 
@@ -492,7 +523,7 @@
         };
 
         // --- NEW MODULE: BEHAVIORAL MODIFICATION ("THE PHYSICIAN") ---
-        const BehavioralMod = () => {
+        const BehavioralMod = ({ onIntervention }) => {
             const [subject, setSubject] = useState(null);
             const [step, setStep] = useState('SELECT'); // SELECT, ANALYZE, INTERVENE, RESULT
             const [intervention, setIntervention] = useState(null);
@@ -504,14 +535,15 @@
             ];
 
             const interventions = [
-                { id: 'ECO', name: 'ECONOMIC PRESSURE', desc: 'Restrict credit. Deny grants. Create bureaucratic debt.', cost: 'LOW', impact: 'SUBTLE' },
-                { id: 'SOC', name: 'SOCIAL ISOLATION', desc: 'Fabricate rumors. Distance colleagues. Algorithmically suppress comms.', cost: 'MED', impact: 'MODERATE' },
-                { id: 'DET', name: 'PREVENTIVE DETENTION', desc: 'Immediate extraction. Enhanced interrogation.', cost: 'HIGH', impact: 'SEVERE' }
+                { id: 'ECO', name: 'ECONOMIC PRESSURE', desc: 'Restrict credit. Deny grants. Create bureaucratic debt.', cost: 'LOW', impact: 'SUBTLE', fearBonus: 5, stabBonus: 2 },
+                { id: 'SOC', name: 'SOCIAL ISOLATION', desc: 'Fabricate rumors. Distance colleagues. Algorithmically suppress comms.', cost: 'MED', impact: 'MODERATE', fearBonus: 10, stabBonus: 5 },
+                { id: 'DET', name: 'PREVENTIVE DETENTION', desc: 'Immediate extraction. Enhanced interrogation.', cost: 'HIGH', impact: 'SEVERE', fearBonus: 25, stabBonus: 10 }
             ];
 
             const handleIntervene = (type) => {
                 setIntervention(type);
                 setStep('RESULT');
+                if (onIntervention) onIntervention(type.fearBonus, type.stabBonus);
             };
 
             const reset = () => {
@@ -591,7 +623,7 @@
                                                         <div className="text-[10px] font-mono text-zinc-500">{int.desc}</div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="text-[9px] font-mono text-zinc-400">COST: {int.cost}</div>
+                                                        <div className="text-[9px] font-mono text-zinc-400">FEAR +{int.fearBonus}</div>
                                                         <div className="text-[9px] font-mono text-zinc-400">IMPACT: {int.impact}</div>
                                                     </div>
                                                 </button>
@@ -609,9 +641,9 @@
                                     <h3 className="text-xl font-header text-white mb-2">INTERVENTION AUTHORIZED</h3>
                                     <div className="text-sm font-mono text-zinc-300 mb-6 max-w-md">
                                         Protocol <span className="text-red-400">{intervention.name}</span> initiated against {subject.name}. 
-                                        {intervention.id === 'ECO' && " Subject's credit rating downgraded. Grants revoked."}
-                                        {intervention.id === 'SOC' && " Isolation algorithms active. Peer distancing expected within 48 hours."}
-                                        {intervention.id === 'DET' && " Extraction team dispatched. Cover story: 'Medical Emergency'."}
+                                        {intervention.id === 'ECO' && " Subject's credit rating downgraded. Grants revoked. Bureaucratic nightmare initiated."}
+                                        {intervention.id === 'SOC' && " Isolation algorithms active. Peer distancing expected within 48 hours. Communication blackout."}
+                                        {intervention.id === 'DET' && " Extraction team dispatched. Cover story: 'Medical Emergency'. Re-education scheduled."}
                                     </div>
                                     <Button onClick={reset}>PROCESS NEXT SUBJECT</Button>
                                 </div>
@@ -698,14 +730,15 @@
             const [selectedNode, setSelectedNode] = useState(null);
             const [filters, setFilters] = useState({ COMMAND: true, CONFLICT: true, SURV: true });
 
+            // Updated coordinates to ensure they fit in view 100x100
             const nodes = [
-                { id: 'KRASK', label: 'DIR. KRASK', x: 50, y: 15, type: 'director', desc: 'Central Authority. ISB Directorate. "The Physician".' },
-                { id: 'MARUS', label: 'DIR. MARUS', x: 30, y: 40, type: 'asset', desc: 'Project Panopticon Lead. Pragmatic. Family on Coruscant.' },
-                { id: 'KESSLER', label: 'G.M. KESSLER', x: 70, y: 40, type: 'target', desc: 'Political Obstacle. Reformist Leader. Controls Hok.' },
-                { id: 'MINING', label: 'GUILD 442', x: 70, y: 70, type: 'target', desc: 'Labor Force. High Unrest. Strike Risk.' },
-                { id: 'REBELS', label: 'CELL AUREK', x: 20, y: 80, type: 'threat', desc: 'Insurgency detected. Funding Mining Guild.' },
-                { id: 'COMPNOR', label: 'COMPNOR', x: 80, y: 20, type: 'political', desc: 'Political Backing. Budget Source. Ideological Hardliners.' },
-                { id: 'UNI', label: 'UNI. HOK', x: 40, y: 60, type: 'surv', desc: 'Academic Dissidents. Monitored.' }
+                { id: 'KRASK', label: 'DIR. KRASK', x: 50, y: 20, type: 'director', desc: 'Central Authority. ISB Directorate. "The Physician".' },
+                { id: 'MARUS', label: 'DIR. MARUS', x: 25, y: 50, type: 'asset', desc: 'Project Panopticon Lead. Pragmatic. Family on Coruscant.' },
+                { id: 'KESSLER', label: 'G.M. KESSLER', x: 75, y: 50, type: 'target', desc: 'Political Obstacle. Reformist Leader. Controls Hok.' },
+                { id: 'MINING', label: 'GUILD 442', x: 75, y: 80, type: 'target', desc: 'Labor Force. High Unrest. Strike Risk.' },
+                { id: 'REBELS', label: 'CELL AUREK', x: 20, y: 85, type: 'threat', desc: 'Insurgency detected. Funding Mining Guild.' },
+                { id: 'COMPNOR', label: 'COMPNOR', x: 85, y: 20, type: 'political', desc: 'Political Backing. Budget Source. Ideological Hardliners.' },
+                { id: 'UNI', label: 'UNI. HOK', x: 40, y: 70, type: 'surv', desc: 'Academic Dissidents. Monitored.' }
             ];
 
             const links = [
@@ -731,7 +764,7 @@
                         </div>
                         
                         <Box title="HOLONET_TOPOLOGY // INTERACTIVE" className="flex-1 bg-zinc-950">
-                            <svg viewBox="0 0 100 100" className="w-full h-full">
+                            <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
                                 <defs>
                                     <marker id="arrow" markerWidth="4" markerHeight="4" refX="10" refY="2" orient="auto">
                                         <path d="M0,0 L4,2 L0,4" fill="#666" />
@@ -815,7 +848,7 @@
         }
 
         // --- INTERACTIVE LOGISTICS ---
-        const Logistics = () => {
+        const Logistics = ({ stability, fear }) => {
             const [budget, setBudget] = useState({ surv: 60, field: 30, rd: 10 });
             const [assets, setAssets] = useState([
                 { id: 'P-882', type: 'PROBE', loc: 'Hok Orbit', status: 'SCANNING', health: 100 },
@@ -826,8 +859,8 @@
             ]);
             const [selectedAsset, setSelectedAsset] = useState(null);
 
-            const stability = Math.min(100, Math.floor((budget.surv * 0.8) + (budget.field * 0.5)));
-            const fear = Math.min(100, Math.floor((budget.field * 1.2) + (budget.surv * 0.2)));
+            const calcStability = Math.min(100, Math.floor((budget.surv * 0.8) + (budget.field * 0.5) + (stability || 0) * 0.2));
+            const calcFear = Math.min(100, Math.floor((budget.field * 1.2) + (budget.surv * 0.2) + (fear || 0) * 0.2));
             
             const handleBudgetChange = (type, val) => {
                 const newVal = parseInt(val);
@@ -867,8 +900,8 @@
                                 </div>
                                 
                                 <div className="pt-4 border-t border-zinc-800 grid grid-cols-2 gap-4">
-                                    <div className="p-2 border border-zinc-800 bg-zinc-900 text-center"><div className="text-[9px] text-zinc-500">STABILITY</div><div className="text-xl text-white font-header">{stability}%</div></div>
-                                    <div className="p-2 border border-zinc-800 bg-zinc-900 text-center"><div className="text-[9px] text-zinc-500">FEAR INDEX</div><div className="text-xl text-red-500 font-header">{fear}%</div></div>
+                                    <div className="p-2 border border-zinc-800 bg-zinc-900 text-center"><div className="text-[9px] text-zinc-500">NET STABILITY</div><div className="text-xl text-white font-header">{calcStability}%</div></div>
+                                    <div className="p-2 border border-zinc-800 bg-zinc-900 text-center"><div className="text-[9px] text-zinc-500">NET FEAR</div><div className="text-xl text-red-500 font-header">{calcFear}%</div></div>
                                 </div>
                             </div>
                         </Box>
@@ -1056,7 +1089,7 @@
         };
 
         // --- DASHBOARD (Main) ---
-        const Dashboard = () => {
+        const Dashboard = ({ stability, fear }) => {
              const resources = [{ label: "Data Coll.", val: 85 }, { label: "Predictive", val: 45 }, { label: "Conditioning", val: 60 }, { label: "Detention", val: 30 }];
              const trendData = [40, 45, 42, 50, 55, 52, 60, 65, 62, 70];
              
@@ -1064,10 +1097,10 @@
                 <div className="h-full grid grid-cols-12 grid-rows-6 gap-4 animate-fade-in">
                     <Box title="SYSTEM_METRICS" className="col-span-8 row-span-2">
                         <div className="grid grid-cols-4 gap-4 h-full content-center">
-                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">89%</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Stability Index</div></div>
+                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">{stability}%</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Stability Index</div></div>
                             <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-red-500 mb-1 animate-pulse">12</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Active Alerts</div></div>
                             <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">94%</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Resource Output</div></div>
-                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-white mb-1">144</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Cycle Count</div></div>
+                            <div className="text-center p-2 border border-zinc-800 bg-zinc-950/50"><div className="text-3xl font-header text-amber-500 mb-1">{fear}%</div><div className="text-[9px] font-mono text-zinc-500 uppercase">Fear Index</div></div>
                         </div>
                     </Box>
                     <Box title="PRIORITY_FEED" className="col-span-4 row-span-6" alert scroll>
@@ -1090,7 +1123,7 @@
         };
 
         // --- PANOPTICON (Detailed) ---
-        const Panopticon = () => {
+        const Panopticon = ({ stability, fear, unlocked }) => {
              const [expanded, setExpanded] = useState('I');
              const [tab, setTab] = useState('PHASES');
              const [sim, setSim] = useState({ name: 'Subject 8821', risk: 12 });
@@ -1103,8 +1136,8 @@
 
              const phases = [
                 { id: "I", title: "FOUNDATION (Data)", detail: "Comprehensive data collection. Integration of medical, financial, and transit records.", tasks: ["Recruit Local Personnel", "Inventory Assets", "Audit Civil Service", "Secure Kessler Authorization"] },
-                { id: "II", title: "PREDICTIVE (Analysis)", detail: "Algorithm v4 deployment. Identifying risk patterns before crimes occur.", tasks: ["Deploy Camera Grid", "Install Bio-Scanners", "Activate Algorithm v4", "Establish Ops Center"] },
-                { id: "III", title: "INTERVENTION (Conditioning)", detail: "Graduated pressure protocols. Making resistance psychologically impossible.", tasks: ["Identify High-Risk Targets", "Begin Graduated Pressure", "Monitor Dissident Response", "Test Intervention Thresholds"] }
+                { id: "II", title: "PREDICTIVE (Analysis)", locked: !unlocked, detail: "Algorithm v4 deployment. Identifying risk patterns before crimes occur.", tasks: ["Deploy Camera Grid", "Install Bio-Scanners", "Activate Algorithm v4", "Establish Ops Center"] },
+                { id: "III", title: "INTERVENTION (Conditioning)", locked: !unlocked, detail: "Graduated pressure protocols. Making resistance psychologically impossible.", tasks: ["Identify High-Risk Targets", "Begin Graduated Pressure", "Monitor Dissident Response", "Test Intervention Thresholds"] }
             ];
 
             return (
@@ -1118,12 +1151,29 @@
                         {tab === 'PHASES' && (
                             <>
                             <Box title="PHASE_EXECUTOR" className="w-1/3" scroll>
-                                <div className="space-y-4">{phases.map((p) => (<div key={p.id} className="border border-zinc-800 bg-zinc-900/30"><button onClick={() => setExpanded(expanded === p.id ? null : p.id)} className="w-full p-4 flex justify-between items-center hover:bg-zinc-800 transition-colors"><span className="font-header text-lg text-white">PHASE {p.id} // {p.title}</span><span className="text-xs font-mono text-zinc-500">{expanded === p.id ? '[-]' : '[+]'}</span></button>{expanded === p.id && (<div className="p-4 border-t border-zinc-800 bg-zinc-950/50"><p className="text-xs font-mono text-zinc-400 mb-4">{p.detail}</p><div className="space-y-2">{p.tasks.map((t, i) => (<div key={i} className="flex items-center gap-3 text-xs font-mono text-zinc-500"><div className="w-3 h-3 border border-zinc-600"></div>{t}</div>))}</div></div>)}</div>))}</div>
+                                <div className="space-y-4">
+                                    {phases.map((p) => (
+                                        <div key={p.id} className={`border ${p.locked ? 'border-zinc-900 opacity-50' : 'border-zinc-800 bg-zinc-900/30'}`}>
+                                            <button onClick={() => !p.locked && setExpanded(expanded === p.id ? null : p.id)} className="w-full p-4 flex justify-between items-center hover:bg-zinc-800 transition-colors">
+                                                <span className="font-header text-lg text-white">PHASE {p.id} // {p.title} {p.locked && '[LOCKED]'}</span>
+                                                <span className="text-xs font-mono text-zinc-500">{p.locked ? '🔒' : (expanded === p.id ? '[-]' : '[+]')}</span>
+                                            </button>
+                                            {expanded === p.id && !p.locked && (
+                                                <div className="p-4 border-t border-zinc-800 bg-zinc-950/50">
+                                                    <p className="text-xs font-mono text-zinc-400 mb-4">{p.detail}</p>
+                                                    <div className="space-y-2">{p.tasks.map((t, i) => (<div key={i} className="flex items-center gap-3 text-xs font-mono text-zinc-500"><div className="w-3 h-3 border border-zinc-600"></div>{t}</div>))}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </Box>
                             <div className="w-1/3 flex flex-col gap-4">
-                                <Box title="PSYCHOGRAPHIC_MODEL" className="h-1/2"><RadarChart /></Box>
+                                <Box title="PSYCHOGRAPHIC_MODEL" className="h-1/2">
+                                    <RadarChart stability={stability} fear={fear} />
+                                </Box>
                                 <Box title="FALSE_POSITIVE_UTILITY" className="h-1/2 p-4">
-                                    <div className="text-xs font-mono text-zinc-400 mb-2">"False positives are a feature, not a bug. Generalized uncertainty creates caution."</div>
+                                    <div className="text-xs font-mono text-zinc-400 mb-2">"False positives are a feature, not a bug. Generalized uncertainty creates caution." - THE PHYSICIAN</div>
                                     <div className="mt-4"><div className="flex justify-between text-[10px] text-zinc-500 uppercase"><span>Current Error Rate</span><span className="text-white">12%</span></div><LoadingBar progress={12} color="bg-red-600" /></div>
                                 </Box>
                             </div>
@@ -1147,25 +1197,25 @@
         const Dossiers = () => {
              const [selected, setSelected] = useState('krask');
              const profiles = { 
-                 krask: { name: "VALEN KRASK", rank: "DIRECTOR", unit: "ISB CENTRAL", bio: `Born 50 BBY, Alsakan. Nicknames: "The Physician", "The Surgeon". Approaches security as surgery. Believes the Republic failed because it couldn't make difficult decisions. Unmarried. No children. The Ivory Tower is his only home.`, activity: ["Authorized Phase II Budget", "Meeting with T. Marus (0700)", "Reviewed 'Death Star' failure memo"] }, 
-                 marus: { name: "THANE MARUS", rank: "PROJECT DIRECTOR", unit: "PANOPTICON INITIATIVE", bio: `Deputy Director. Intelligent, pragmatic. Selected for flexibility. Questioned ethical implications but accepted the logic of "Freedom through Order". Family: Wife + 2 Children (Coruscant). Hesitant but loyal.`, activity: ["Accepted Hok Assignment", "Briefing with Tech Division", "Relocation Protocols Initiated"] }, 
+                 krask: { name: "VALEN KRASK", rank: "DIRECTOR", unit: "ISB CENTRAL", bio: `Born 50 BBY, Alsakan. Nicknames: "The Physician", "The Surgeon". Approaches security as surgery. Believes the Republic failed because it couldn't make difficult decisions. Unmarried. No children. "The Ivory Tower" is his only home. Quote: "Order is mercy. Chaos is cruelty."`, activity: ["Authorized Phase II Budget", "Meeting with T. Marus (0700)", "Reviewed 'Death Star' failure memo"] }, 
+                 marus: { name: "THANE MARUS", rank: "PROJECT DIRECTOR", unit: "PANOPTICON INITIATIVE", bio: `Deputy Director. Intelligent, pragmatic. Selected for flexibility. Questioned ethical implications: "Have we built a society or a prison?" Family: Wife + 2 Children (Coruscant). Hesitant but loyal. Accepted promotion to Director Grade 3.`, activity: ["Accepted Hok Assignment", "Briefing with Tech Division", "Relocation Protocols Initiated"] }, 
                  kessler: { name: "GARRIK KESSLER", rank: "GRAND MOFF", unit: "OVERSECTOR 4", bio: `Primary political obstacle. Reformist Leader. Advocates "Trust-Based Governance". Believes heavy security creates resistance. Controls Hok.`, activity: ["Submitted complaint re: ISB overreach", "Touring Mining District 7G", "Denied automated surveillance permit"] } 
             };
             const data = profiles[selected];
             return (
                 <div className="h-full flex gap-6 animate-slide-in">
                     <div className="w-64 flex flex-col gap-2">{Object.entries(profiles).map(([key, p]) => (<button key={key} onClick={() => setSelected(key)} className={`p-4 border text-left transition-all ${selected === key ? 'bg-zinc-900 border-white' : 'bg-black border-zinc-800 hover:border-zinc-600'}`}><div className="text-[9px] font-mono text-zinc-500 uppercase">{p.rank}</div><div className="font-header text-lg text-white">{p.name}</div></button>))}</div>
-                    <Box title={`SUBJECT // ${data.name}`} className="flex-1" scroll><div className="grid grid-cols-2 gap-8"><div><div className="mb-6"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Biographical Summary</div><p className="font-mono text-sm text-zinc-300 leading-relaxed">{data.bio}</p></div></div><div><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2 border-b border-zinc-800 pb-1">Recent Activity Log</div><div className="space-y-2">{data.activity.map((act, i) => (<div key={i} className="flex gap-3 text-xs font-mono text-zinc-400"><span className="text-zinc-600">[-0{i}h]</span><span>{act}</span></div>))}</div></div></div></Box>
+                    <Box title={`SUBJECT // ${data.name}`} className="flex-1" scroll><div className="grid grid-cols-2 gap-8"><div><div className="mb-6"><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2">Biographical Summary</div><p className="font-mono text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{data.bio}</p></div></div><div><div className="text-[9px] font-mono text-zinc-500 uppercase mb-2 border-b border-zinc-800 pb-1">Recent Activity Log</div><div className="space-y-2">{data.activity.map((act, i) => (<div key={i} className="flex gap-3 text-xs font-mono text-zinc-400"><span className="text-zinc-600">[-0{i}h]</span><span>{act}</span></div>))}</div></div></div></Box>
                 </div>
             );
         };
 
         const Archives = () => {
             const logs = [
-                { id: "LOG-0547", date: "5 ABY // 05:47", title: "Morning Reflection", text: "The city transitions from night to day. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure. Order requires vigilance. The Ivory Tower stands as a monument to that vigilance." },
-                { id: "LOG-0700", date: "5 ABY // 07:00", title: "Meeting: Marus / Panopticon", text: "Marus is skeptical but obedient. I showed him the 'Comprehensive Social Equilibrium Initiative'. He called it ambitious. He asked about the privacy implications. I told him privacy is a luxury the Empire cannot afford. We are building systematic inevitability." },
+                { id: "LOG-0547", date: "5 ABY // 05:47", title: "THE PHYSICIAN'S LOG", text: "The city transitions from night to day. Awareness gives me satisfaction. Not pleasure. Satisfaction. The systems work. My office is bare. Decoration implies leisure. I have no time for leisure. Order requires vigilance. The Ivory Tower stands as a monument to that vigilance." },
+                { id: "LOG-0700", date: "5 ABY // 07:00", title: "Meeting: Marus / Panopticon", text: "Marus is skeptical but obedient. I showed him the 'Comprehensive Social Equilibrium Initiative'. He asked if we are building a society or a prison. I told him: 'Freedom isn't the absence of structure, it's the presence of safe structure.' We are building systematic inevitability." },
                 { id: "LOG-21BBY", date: "21 BBY // ARCHIVE", title: "Refugee Crisis Management", text: "Refugee populations are security vulnerabilities. Compassion that compromises security is not compassion, it's negligence. I would rather detain a thousand innocent people than let one saboteur through." },
-                { id: "LOG-04ABY", date: "4 ABY // POST-ENDOR", title: "The Crisis of Authority", text: "The Emperor is dead. The mechanism is broken. Without him, we have institutions, yes, but we lack the unifying force. We must create different capabilities. Institutional rather than personal." }
+                { id: "LOG-04ABY", date: "4 ABY // POST-ENDOR", title: "The Crisis of Authority", text: "The Emperor is dead. The mechanism is broken. Without him, we have institutions, yes, but we lack the unifying force. We must create different capabilities. Institutional rather than personal. We must become the consequence that prevents fragmentation." }
             ];
             return (
                 <div className="h-full flex gap-6 animate-slide-in">
@@ -1183,6 +1233,9 @@
             const [view, setView] = useState('dashboard');
             const [loginStep, setLoginStep] = useState(0);
             const [alertLevel, setAlertLevel] = useState('LOW');
+            const [stability, setStability] = useState(89);
+            const [fear, setFear] = useState(24);
+            const [unlockedPhases, setUnlockedPhases] = useState(false);
 
             const handleLogin = () => {
                 if (loginStep === 0) { setLoginStep(1); setTimeout(() => setLoginStep(2), 1500); setTimeout(() => setLoginStep(3), 3000); }
@@ -1190,6 +1243,19 @@
 
             const toggleAlert = () => {
                 setAlertLevel(prev => prev === 'LOW' ? 'HIGH' : 'LOW');
+            };
+
+            const handleIntervention = (fBonus, sBonus) => {
+                setFear(prev => Math.min(100, prev + fBonus));
+                setStability(prev => Math.min(100, prev + sBonus));
+            };
+
+            // Terminal Command Handler (State Uplift)
+            const handleTerminalCommand = (action) => {
+                if (action.type === 'ALERT') setAlertLevel(action.payload);
+                if (action.type === 'NAVIGATE') setView(action.payload);
+                if (action.type === 'UNLOCK') setUnlockedPhases(true);
+                if (action.type === 'FEAR_SPIKE') setFear(prev => Math.min(100, prev + action.payload));
             };
 
             if (loginStep < 3) {
@@ -1268,18 +1334,18 @@
                         </nav>
                         <main className="flex-1 bg-black p-6 md:p-8 overflow-hidden flex flex-col relative">
                             <div className="flex-1 min-h-0 relative">
-                                {view === 'dashboard' && <Dashboard />}
-                                {view === 'panopticon' && <Panopticon />}
+                                {view === 'dashboard' && <Dashboard stability={stability} fear={fear} />}
+                                {view === 'panopticon' && <Panopticon stability={stability} fear={fear} unlocked={unlockedPhases} />}
                                 {view === 'analytics' && <Analytics />}
                                 {view === 'surveillance' && <Surveillance />}
-                                {view === 'terminal' && <Terminal />}
+                                {view === 'terminal' && <Terminal onCommand={handleTerminalCommand} />}
                                 {view === 'hok' && <InteractiveMap />}
                                 {view === 'encryption' && <Encryption />}
                                 {view === 'archives' && <Archives />}
                                 {view === 'dossiers' && <Dossiers />}
                                 {view === 'network' && <NetworkAnalysis />}
-                                {view === 'logistics' && <Logistics />}
-                                {view === 'psych' && <BehavioralMod />}
+                                {view === 'logistics' && <Logistics stability={stability} fear={fear} />}
+                                {view === 'psych' && <BehavioralMod onIntervention={handleIntervention} />}
                                 {view === 'comms' && <SecureComms />}
                             </div>
                         </main>
